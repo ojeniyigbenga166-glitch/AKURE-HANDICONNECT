@@ -89,7 +89,7 @@ export default function AkureMapSection({ onSelectDistrict, isRegistered = false
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-white">
-                  Unlock All {AKURE_NEIGHBORHOOD_STATS.length} Akure Coverage Areas
+                  Unlock All Akure Coverage Areas
                 </h3>
                 <p className="text-slate-300 text-xs sm:text-sm max-w-md mx-auto font-normal">
                   Register free as a client or artisan to access pros across Oke-Aro, Fanibi, Ondo Road, Oda Road, Arakale & all Ondo State districts.
