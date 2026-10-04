@@ -37,14 +37,16 @@ export default function Navbar({
 
           {/* Nav Links with NavLink */}
           <nav className="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-700">
-            <NavLink
-              to="/dashboard"
-              className={({ isActive }) =>
-                `transition-colors py-1 ${isActive ? 'text-[#0F766E] font-bold border-b-2 border-[#0F766E]' : 'hover:text-[#0F766E]'}`
-              }
-            >
-              My Dashboard
-            </NavLink>
+            {currentUser && (
+              <NavLink
+                to="/dashboard"
+                className={({ isActive }) =>
+                  `transition-colors py-1 ${isActive ? 'text-[#0F766E] font-bold border-b-2 border-[#0F766E]' : 'hover:text-[#0F766E]'}`
+                }
+              >
+                My Dashboard
+              </NavLink>
+            )}
             <NavLink
               to="/artisans"
               className={({ isActive }) =>
@@ -169,13 +171,15 @@ export default function Navbar({
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-5 space-y-2 shadow-lg">
-          <Link
-            to="/dashboard"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block w-full py-2 text-sm font-semibold text-slate-800 hover:text-[#0F766E]"
-          >
-            My Dashboard
-          </Link>
+          {currentUser && (
+            <Link
+              to="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block w-full py-2 text-sm font-semibold text-slate-800 hover:text-[#0F766E]"
+            >
+              My Dashboard
+            </Link>
+          )}
           <Link
             to="/artisans"
             onClick={() => setMobileMenuOpen(false)}

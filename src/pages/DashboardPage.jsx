@@ -43,9 +43,15 @@ export default function DashboardPage({
   onOpenAuthSelection,
   onSignOut
 }) {
-  // Mode toggle: if artisan is registered, default to 'artisan-pro', otherwise 'client'
-  const [viewMode, setViewMode] = useState(isRegisteredArtisan ? 'artisan-pro' : 'client');
-  const [activeDashboardTab, setActiveDashboardTab] = useState(isRegisteredArtisan ? 'live-tasks' : 'my-tasks');
+  const isArtisanRole = currentUser?.role === 'artisan' || isRegisteredArtisan;
+  const [viewMode, setViewMode] = useState(isArtisanRole ? 'artisan-pro' : 'client');
+  const [activeDashboardTab, setActiveDashboardTab] = useState(isArtisanRole ? 'live-tasks' : 'my-tasks');
+
+  React.useEffect(() => {
+    const isArtisan = currentUser?.role === 'artisan' || isRegisteredArtisan;
+    setViewMode(isArtisan ? 'artisan-pro' : 'client');
+    setActiveDashboardTab(isArtisan ? 'live-tasks' : 'my-tasks');
+  }, [currentUser, isRegisteredArtisan]);
   
   const [isPostTaskOpen, setIsPostTaskOpen] = useState(false);
   const [isBecomeTaskerOpen, setIsBecomeTaskerOpen] = useState(false);
@@ -60,6 +66,53 @@ export default function DashboardPage({
   const [searchQuery, setSearchQuery] = useState('');
 
   const navigate = useNavigate();
+
+  // If user is not logged in, prompt them to Sign In / Register as Client or Artisan
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans w-full">
+        <Navbar
+          onOpenPostJob={() => setIsPostTaskOpen(true)}
+          currentUser={null}
+          onOpenAuthSelection={onOpenAuthSelection}
+          onSignOut={onSignOut}
+        />
+
+        <main className="flex-grow flex items-center justify-center p-6 py-16">
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-10 max-w-md w-full text-center shadow-lg space-y-5 animate-in fade-in">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-[#0F766E] border border-emerald-200 flex items-center justify-center mx-auto shadow-xs">
+              <UserCheck className="w-8 h-8 stroke-[2.2]" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Access Your Dashboard</h2>
+              <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed">
+                Please sign in or create an account as a <strong>Client</strong> (to manage tasks & quotes) or as an <strong>Artisan</strong> (to view jobs & quote prices).
+              </p>
+            </div>
+
+            <div className="pt-2 space-y-3">
+              <button
+                onClick={onOpenAuthSelection}
+                className="w-full py-3 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Sign In / Register Account</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </main>
+
+        <Footer onOpenPostJob={() => setIsPostTaskOpen(true)} />
+
+        <PostTaskModal
+          isOpen={isPostTaskOpen}
+          onClose={() => setIsPostTaskOpen(false)}
+          onPublishTask={onPublishTask}
+        />
+      </div>
+    );
+  }
 
   // Mock data
   const registeredArtisanInfo = artisans[0]; // Gbenga / Newly registered artisan

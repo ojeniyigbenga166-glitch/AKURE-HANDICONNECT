@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 
 import Home from './pages/Home';
 import DashboardPage from './pages/DashboardPage';
@@ -15,7 +15,7 @@ import AuthModal from './components/AuthModal';
 import { INITIAL_ARTISANS, INITIAL_JOBS } from './data/mockData';
 import { fetchArtisansFromSupabase } from './services/artisanService';
 
-export default function App() {
+function AppContent() {
   const [artisans, setArtisans] = useState(INITIAL_ARTISANS);
   const [jobs, setJobs] = useState(INITIAL_JOBS);
   const [isRegisteredArtisan, setIsRegisteredArtisan] = useState(false);
@@ -26,6 +26,8 @@ export default function App() {
   const [isAuthSelectionOpen, setIsAuthSelectionOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('signin'); // 'signin' | 'signup-client' | 'signup-artisan'
+
+  const navigate = useNavigate();
 
   // Load real artisans from Supabase Cloud Database on startup
   useEffect(() => {
@@ -58,6 +60,7 @@ export default function App() {
       phone: newArtisan.phone
     });
     showToast(`Welcome ${newArtisan.name}! Your professional profile is live.`);
+    navigate('/dashboard');
   };
 
   const handleSubmitOffer = (jobId, offerData) => {
@@ -118,16 +121,20 @@ export default function App() {
     } else {
       showToast(`Welcome back ${user.name}! Signed in to Client Dashboard.`);
     }
+
+    // Immediately navigate user directly to their dashboard according to role!
+    navigate('/dashboard');
   };
 
   const handleSignOut = () => {
     setCurrentUser(null);
     setIsRegisteredArtisan(false);
     showToast('Signed out successfully.');
+    navigate('/');
   };
 
   return (
-    <BrowserRouter>
+    <>
       {/* Toast Alert Banner */}
       {toastMessage && (
         <div className="fixed top-20 right-4 z-50 bg-[#0F766E] text-white px-4 py-3 rounded-lg shadow-lg border border-emerald-600 flex items-center gap-2 text-xs sm:text-sm font-semibold animate-in fade-in slide-in-from-top-2">
@@ -250,7 +257,14 @@ export default function App() {
         initialMode={authModalMode}
         onAuthenticate={handleAuthenticate}
       />
+    </>
+  );
+}
 
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
