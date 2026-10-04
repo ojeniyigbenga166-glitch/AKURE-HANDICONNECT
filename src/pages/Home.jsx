@@ -18,8 +18,11 @@ export default function Home({
   artisans,
   jobs,
   isRegisteredArtisan,
+  currentUser,
   onPublishTask,
-  onRegisterArtisan
+  onRegisterArtisan,
+  onOpenAuthSelection,
+  onSignOut
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDistrict, setSelectedDistrict] = useState('all');
@@ -56,6 +59,9 @@ export default function Home({
       <Navbar
         onOpenPostJob={() => setIsPostTaskOpen(true)}
         onOpenBecomePro={() => setIsBecomeTaskerOpen(true)}
+        currentUser={currentUser}
+        onOpenAuthSelection={onOpenAuthSelection}
+        onSignOut={onSignOut}
       />
 
       {/* Hero Section */}

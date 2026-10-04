@@ -51,14 +51,19 @@ export default function PostTaskModal({ isOpen, onClose, onPublishTask }) {
               <PlusCircle className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">Post a Task in Akure</h3>
-              <p className="text-xs text-slate-500 font-normal">Describe what you need fixed to receive quotes from local artisans.</p>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-slate-900">Post a Task</h3>
+                <span className="text-[10px] font-extrabold uppercase bg-emerald-100 text-[#0F766E] px-2 py-0.5 rounded border border-emerald-200">
+                  Client Request
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-normal">For clients & homeowners looking to hire a skilled artisan in Akure.</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-200/80 hover:bg-slate-300 text-slate-600 transition-all"
+            className="p-1.5 rounded-lg bg-slate-200/80 hover:bg-slate-300 text-slate-600 transition-all cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -66,6 +71,15 @@ export default function PostTaskModal({ isOpen, onClose, onPublishTask }) {
 
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5 max-h-[75vh] overflow-y-auto">
+
+          {/* Client Explanatory Callout */}
+          <div className="bg-emerald-50/80 border border-emerald-200 rounded-lg p-3 text-xs text-slate-700 flex items-start gap-2">
+            <span className="text-[#0F766E] font-bold text-base leading-none">💡</span>
+            <div>
+              <span className="font-bold text-[#0F766E]">Looking for an artisan?</span>
+              <span className="ml-1 text-slate-600">Post your repair, installation, or servicing job below to receive direct phone & WhatsApp quotes from verified local pros in Akure.</span>
+            </div>
+          </div>
           
           {/* Your Name */}
           <div>

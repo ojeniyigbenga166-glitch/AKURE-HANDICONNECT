@@ -36,9 +36,12 @@ export default function DashboardPage({
   artisans,
   jobs,
   isRegisteredArtisan,
+  currentUser,
   onPublishTask,
   onRegisterArtisan,
-  onSubmitOffer
+  onSubmitOffer,
+  onOpenAuthSelection,
+  onSignOut
 }) {
   // Mode toggle: if artisan is registered, default to 'artisan-pro', otherwise 'client'
   const [viewMode, setViewMode] = useState(isRegisteredArtisan ? 'artisan-pro' : 'client');
@@ -150,6 +153,9 @@ export default function DashboardPage({
       <Navbar
         onOpenPostJob={() => setIsPostTaskOpen(true)}
         onOpenBecomePro={() => setIsBecomeTaskerOpen(true)}
+        currentUser={currentUser}
+        onOpenAuthSelection={onOpenAuthSelection}
+        onSignOut={onSignOut}
       />
 
       {/* Main Dashboard Body */}

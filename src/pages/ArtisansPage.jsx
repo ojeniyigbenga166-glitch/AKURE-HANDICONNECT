@@ -9,8 +9,11 @@ import ArtisanDetailModal from '../components/ArtisanDetailModal';
 
 export default function ArtisansPage({
   artisans,
+  currentUser,
   onPublishTask,
-  onRegisterArtisan
+  onRegisterArtisan,
+  onOpenAuthSelection,
+  onSignOut
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDistrict, setSelectedDistrict] = useState('all');
@@ -32,6 +35,9 @@ export default function ArtisansPage({
       <Navbar
         onOpenPostJob={() => setIsPostTaskOpen(true)}
         onOpenBecomePro={() => setIsBecomeTaskerOpen(true)}
+        currentUser={currentUser}
+        onOpenAuthSelection={onOpenAuthSelection}
+        onSignOut={onSignOut}
       />
 
       <main className="flex-grow">

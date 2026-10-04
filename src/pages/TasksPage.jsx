@@ -9,9 +9,12 @@ import MakeOfferModal from '../components/MakeOfferModal';
 export default function TasksPage({
   jobs,
   isRegisteredArtisan,
+  currentUser,
   onPublishTask,
   onRegisterArtisan,
-  onSubmitOffer
+  onSubmitOffer,
+  onOpenAuthSelection,
+  onSignOut
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDistrict, setSelectedDistrict] = useState('all');
@@ -26,6 +29,9 @@ export default function TasksPage({
       <Navbar
         onOpenPostJob={() => setIsPostTaskOpen(true)}
         onOpenBecomePro={() => setIsBecomeTaskerOpen(true)}
+        currentUser={currentUser}
+        onOpenAuthSelection={onOpenAuthSelection}
+        onSignOut={onSignOut}
       />
 
       <main className="flex-grow">
