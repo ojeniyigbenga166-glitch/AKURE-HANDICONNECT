@@ -171,7 +171,7 @@ export default function AuthModal({
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Chief Olumide Adeyemi"
+                  placeholder="e.g. Marvellous Adebayo"
                   className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
                 />
               </div>
@@ -228,17 +228,16 @@ export default function AuthModal({
             </div>
           </div>
 
-          {/* Nigerian Phone Number for Signup */}
-          {mode !== 'signin' && (
+          {/* Nigerian Phone Number for Artisan Signup */}
+          {mode === 'signup-artisan' && (
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
-                {mode === 'signup-artisan' ? 'WhatsApp & Contact Line (for Job Alerts)' : 'Nigerian Phone Number'}
+                WhatsApp & Contact Line (for Job Alerts)
               </label>
               <div className="relative">
                 <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                 <input
                   type="tel"
-                  required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 0803 123 4567"

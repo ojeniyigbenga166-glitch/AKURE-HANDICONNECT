@@ -259,10 +259,10 @@ export default function DashboardPage({
                 <div className="space-y-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
                     <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Alagbaka GRA, Akure</span>
+                    <span>{currentUser?.district || 'Akure Metro, Ondo State'}</span>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                    Welcome back, Chief Olumide 👋
+                    Welcome back, {currentUser?.name || 'Client'} 👋
                   </h1>
                   <p className="text-xs sm:text-sm text-slate-300 font-normal max-w-xl leading-relaxed">
                     Manage your posted job requests, review quotes from verified local artisans, and track active repairs in Akure.
@@ -741,10 +741,10 @@ export default function DashboardPage({
                   </div>
 
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                    Welcome back, {registeredArtisanInfo.name} 👋
+                    Welcome back, {currentUser?.name || registeredArtisanInfo.name} 👋
                   </h1>
                   <p className="text-xs sm:text-sm text-slate-300 font-normal max-w-xl">
-                    {registeredArtisanInfo.businessName} • Servicing Alagbaka, Ijapo, FUTA & Akure Metro. View live client tasks and submit instant quotes.
+                    {currentUser?.businessName || registeredArtisanInfo.businessName} • Servicing {currentUser?.district || 'Alagbaka, Ijapo, FUTA & Akure Metro'}. View live client tasks and submit instant quotes.
                   </p>
                 </div>
 
