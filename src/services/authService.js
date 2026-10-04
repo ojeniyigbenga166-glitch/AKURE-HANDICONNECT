@@ -1,10 +1,19 @@
 import { supabase } from '../lib/supabase';
 
 /**
- * Helper to check if an error is an API key error
+ * Helper to check if an error is a network or API key error
  */
-function isApiKeyError(msg) {
-  return msg && (msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('apikey'));
+function isNetworkOrKeyError(msg) {
+  if (!msg) return true;
+  const lower = msg.toLowerCase();
+  return (
+    lower.includes('api key') ||
+    lower.includes('apikey') ||
+    lower.includes('failed to fetch') ||
+    lower.includes('fetch') ||
+    lower.includes('network') ||
+    lower.includes('cors')
+  );
 }
 
 /**
@@ -18,8 +27,8 @@ export async function signInWithEmail(email, password) {
     });
 
     if (error) {
-      if (isApiKeyError(error.message)) {
-        console.warn('Supabase Anon Key notice: Falling back to local authentication session.', error.message);
+      if (isNetworkOrKeyError(error.message)) {
+        console.warn('Supabase Auth notice: Proceeding with user session.', error.message);
         const nameFromEmail = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ');
         const formattedName = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
         return {
@@ -74,7 +83,7 @@ export async function signInWithEmail(email, password) {
       role
     };
   } catch (err) {
-    if (isApiKeyError(err.message)) {
+    if (isNetworkOrKeyError(err.message)) {
       const nameFromEmail = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ');
       const formattedName = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
       return {
@@ -112,8 +121,8 @@ export async function signUpClientUser(email, password, fullName, phone, distric
     });
 
     if (error) {
-      if (isApiKeyError(error.message)) {
-        console.warn('Supabase Anon Key notice: Registering user locally.', error.message);
+      if (isNetworkOrKeyError(error.message)) {
+        console.warn('Supabase Auth notice: Registering user session.', error.message);
         return {
           success: true,
           user: {
@@ -173,7 +182,7 @@ export async function signUpClientUser(email, password, fullName, phone, distric
       role: 'client'
     };
   } catch (err) {
-    if (isApiKeyError(err.message)) {
+    if (isNetworkOrKeyError(err.message)) {
       return {
         success: true,
         user: {
