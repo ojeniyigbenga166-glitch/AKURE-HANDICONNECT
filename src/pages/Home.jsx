@@ -81,6 +81,7 @@ export default function Home({
           setSelectedDistrict={setSelectedDistrict}
           onSelectArtisan={(artisan) => setSelectedArtisan(artisan)}
           onOpenBecomeTasker={() => setIsBecomeTaskerOpen(true)}
+          limit={3}
         />
 
         <PopularServices onSelectService={handleSelectCategory} />
@@ -96,7 +97,11 @@ export default function Home({
           onOpenBecomeTasker={() => setIsBecomeTaskerOpen(true)}
         />
 
-        <AkureMapSection onSelectDistrict={handleSelectDistrict} />
+        <AkureMapSection
+          onSelectDistrict={handleSelectDistrict}
+          isRegistered={isRegisteredArtisan}
+          onOpenRegisterModal={() => setIsBecomeTaskerOpen(true)}
+        />
       </main>
 
       <Footer

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, ShieldCheck, MapPin, MessageSquare, Award, Eye, Search } from 'lucide-react';
+import { Star, ShieldCheck, MapPin, MessageSquare, Award, Eye, Search, ArrowRight } from 'lucide-react';
 import { AKURE_DISTRICTS, CATEGORIES } from '../data/mockData';
 
 export default function ArtisansDirectory({
@@ -12,9 +12,11 @@ export default function ArtisansDirectory({
   selectedDistrict,
   setSelectedDistrict,
   onSelectArtisan,
-  onOpenBecomeTasker
+  onOpenBecomeTasker,
+  limit = null // Pass limit={3} for landing page preview
 }) {
   const [onlyVerified, setOnlyVerified] = useState(false);
+  const [showAllOverride, setShowAllOverride] = useState(false);
 
   // Filter artisans
   const filteredArtisans = artisans.filter(artisan => {
@@ -30,6 +32,10 @@ export default function ArtisansDirectory({
 
     return matchesSearch && matchesCategory && matchesDistrict && matchesVerified;
   });
+
+  const displayedArtisans = (limit && !showAllOverride)
+    ? filteredArtisans.slice(0, limit)
+    : filteredArtisans;
 
   return (
     <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,7 +58,7 @@ export default function ArtisansDirectory({
 
         <button
           onClick={onOpenBecomeTasker}
-          className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-xs font-semibold transition-all"
+          className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-xs font-semibold transition-all cursor-pointer"
         >
           + Join as an Artisan
         </button>
@@ -113,7 +119,7 @@ export default function ArtisansDirectory({
                 setSearchQuery('');
                 setOnlyVerified(false);
               }}
-              className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition-all"
+              className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition-all cursor-pointer"
             >
               Reset Filters
             </button>
@@ -130,107 +136,122 @@ export default function ArtisansDirectory({
           <p className="text-slate-500 text-xs mt-1">Try switching categories or expanding your location filter.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredArtisans.map((artisan) => (
-            <div
-              key={artisan.id}
-              className="bg-white border border-slate-200 hover:border-[#0F766E] rounded-xl p-5 transition-all flex flex-col justify-between shadow-xs hover:shadow-md group"
-            >
-              <div>
-                
-                {/* Header: Avatar & Info */}
-                <div className="flex items-start gap-3.5 mb-3.5">
-                  <div className="relative shrink-0">
-                    <img
-                      src={artisan.avatar}
-                      alt={artisan.name}
-                      className="w-14 h-14 rounded-xl object-cover border border-slate-200 shadow-xs"
-                    />
-                    {artisan.isVerified && (
-                      <span className="absolute -bottom-1 -right-1 bg-[#0F766E] text-white p-0.5 rounded-full shadow-xs">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                      </span>
-                    )}
-                  </div>
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayedArtisans.map((artisan) => (
+              <div
+                key={artisan.id}
+                className="bg-white border border-slate-200 hover:border-[#0F766E] rounded-xl p-5 transition-all flex flex-col justify-between shadow-xs hover:shadow-md group"
+              >
+                <div>
+                  
+                  {/* Header: Avatar & Info */}
+                  <div className="flex items-start gap-3.5 mb-3.5">
+                    <div className="relative shrink-0">
+                      <img
+                        src={artisan.avatar}
+                        alt={artisan.name}
+                        className="w-14 h-14 rounded-xl object-cover border border-slate-200 shadow-xs"
+                      />
+                      {artisan.isVerified && (
+                        <span className="absolute -bottom-1 -right-1 bg-[#0F766E] text-white p-0.5 rounded-full shadow-xs">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                    </div>
 
-                  <div>
-                    <Link to={`/artisan/${artisan.id}`} className="group-hover:text-[#0F766E] transition-colors">
-                      <h3 className="text-base font-bold text-slate-900 group-hover:text-[#0F766E]">
-                        {artisan.name}
-                      </h3>
-                      <p className="text-xs font-semibold text-[#0F766E]">{artisan.businessName}</p>
-                    </Link>
+                    <div>
+                      <Link to={`/artisan/${artisan.id}`} className="group-hover:text-[#0F766E] transition-colors">
+                        <h3 className="text-base font-bold text-slate-900 group-hover:text-[#0F766E]">
+                          {artisan.name}
+                        </h3>
+                        <p className="text-xs font-semibold text-[#0F766E]">{artisan.businessName}</p>
+                      </Link>
 
-                    <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
-                      <span className="flex items-center gap-1 text-amber-500 font-bold">
-                        <Star className="w-3.5 h-3.5 fill-amber-500" /> {artisan.rating}
-                      </span>
-                      <span className="text-slate-300">•</span>
-                      <span>{artisan.reviewsCount} reviews</span>
-                      <span className="text-slate-300">•</span>
-                      <span>{artisan.completedJobs} jobs</span>
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
+                        <span className="flex items-center gap-1 text-amber-500 font-bold">
+                          <Star className="w-3.5 h-3.5 fill-amber-500" /> {artisan.rating}
+                        </span>
+                        <span className="text-slate-300">•</span>
+                        <span>{artisan.reviewsCount} reviews</span>
+                        <span className="text-slate-300">•</span>
+                        <span>{artisan.completedJobs} jobs</span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Badge */}
+                  <div className="mb-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-[11px] font-semibold border border-slate-200">
+                    <Award className="w-3.5 h-3.5 text-[#0F766E]" /> {artisan.badge} ({artisan.experienceYears} yrs exp)
+                  </div>
+
+                  {/* Bio snippet */}
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-3 font-normal">
+                    {artisan.bio}
+                  </p>
+
+                  {/* Locations */}
+                  <div className="mb-4">
+                    <span className="text-[11px] font-semibold text-slate-500 block mb-1">Coverage Areas:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {artisan.districts.slice(0, 3).map((district, idx) => (
+                        <span key={idx} className="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F766E]" /> {district.split(' ')[0]}
+                        </span>
+                      ))}
+                      {artisan.districts.length > 3 && (
+                        <span className="text-[11px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md border border-slate-200">
+                          +{artisan.districts.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
                 </div>
 
-                {/* Badge */}
-                <div className="mb-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-[11px] font-semibold border border-slate-200">
-                  <Award className="w-3.5 h-3.5 text-[#0F766E]" /> {artisan.badge} ({artisan.experienceYears} yrs exp)
-                </div>
+                {/* Card Footer: Starting Price & Action Buttons */}
+                <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Starting Rate</span>
+                    <span className="text-sm font-extrabold text-slate-900">₦{artisan.startingRate.toLocaleString()}</span>
+                  </div>
 
-                {/* Bio snippet */}
-                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-3 font-normal">
-                  {artisan.bio}
-                </p>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`https://wa.me/${artisan.whatsapp}?text=${encodeURIComponent(`Hello ${artisan.name}, I saw your profile on Akure HandiConnect.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#0F766E] border border-emerald-200 transition-all"
+                      title="WhatsApp Artisan"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </a>
 
-                {/* Locations */}
-                <div className="mb-4">
-                  <span className="text-[11px] font-semibold text-slate-500 block mb-1">Coverage Areas:</span>
-                  <div className="flex flex-wrap gap-1">
-                    {artisan.districts.slice(0, 3).map((district, idx) => (
-                      <span key={idx} className="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-[#0F766E]" /> {district.split(' ')[0]}
-                      </span>
-                    ))}
-                    {artisan.districts.length > 3 && (
-                      <span className="text-[11px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md border border-slate-200">
-                        +{artisan.districts.length - 3} more
-                      </span>
-                    )}
+                    <Link
+                      to={`/artisan/${artisan.id}`}
+                      className="px-3 py-1.5 rounded-lg bg-[#0F766E] hover:bg-[#115E59] text-white font-semibold text-xs shadow-xs transition-all flex items-center gap-1"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> Profile
+                    </Link>
                   </div>
                 </div>
 
               </div>
+            ))}
+          </div>
 
-              {/* Card Footer: Starting Price & Action Buttons */}
-              <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                <div>
-                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Starting Rate</span>
-                  <span className="text-sm font-extrabold text-slate-900">₦{artisan.startingRate.toLocaleString()}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`https://wa.me/${artisan.whatsapp}?text=${encodeURIComponent(`Hello ${artisan.name}, I saw your profile on Akure HandiConnect.`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#0F766E] border border-emerald-200 transition-all"
-                    title="WhatsApp Artisan"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                  </a>
-
-                  <Link
-                    to={`/artisan/${artisan.id}`}
-                    className="px-3 py-1.5 rounded-lg bg-[#0F766E] hover:bg-[#115E59] text-white font-semibold text-xs shadow-xs transition-all flex items-center gap-1"
-                  >
-                    <Eye className="w-3.5 h-3.5" /> Profile
-                  </Link>
-                </div>
-              </div>
-
+          {/* SEE MORE BUTTON BANNER IF LIMITED ON HOMEPAGE */}
+          {limit && filteredArtisans.length > limit && !showAllOverride && (
+            <div className="text-center pt-4">
+              <Link
+                to="/artisans"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#0F766E] hover:bg-[#115E59] text-white font-bold text-xs sm:text-sm shadow-xs transition-all"
+              >
+                <span>See More Artisans in Akure ({filteredArtisans.length - limit} more available)</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.2]" />
+              </Link>
             </div>
-          ))}
+          )}
         </div>
       )}
 
