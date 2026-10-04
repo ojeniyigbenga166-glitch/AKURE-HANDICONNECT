@@ -15,6 +15,7 @@ import AuthModal from './components/AuthModal';
 import { INITIAL_ARTISANS, INITIAL_JOBS } from './data/mockData';
 import { fetchArtisansFromSupabase } from './services/artisanService';
 import { getCurrentSession, signOutUser } from './services/authService';
+import { fetchTasksFromSupabase, publishTaskToSupabase, submitQuoteToSupabase } from './services/taskService';
 
 function AppContent() {
   const [artisans, setArtisans] = useState(INITIAL_ARTISANS);
@@ -30,12 +31,17 @@ function AppContent() {
 
   const navigate = useNavigate();
 
-  // Load real artisans & active Supabase Auth session on startup
+  // Load real artisans, tasks & active Supabase Auth session on startup
   useEffect(() => {
     async function loadInitialData() {
-      const data = await fetchArtisansFromSupabase();
-      if (data && data.length > 0) {
-        setArtisans(data);
+      const dbArtisans = await fetchArtisansFromSupabase();
+      if (dbArtisans && dbArtisans.length > 0) {
+        setArtisans(dbArtisans);
+      }
+
+      const dbTasks = await fetchTasksFromSupabase();
+      if (dbTasks && dbTasks.length > 0) {
+        setJobs(dbTasks);
       }
 
       const activeUser = await getCurrentSession();
@@ -54,9 +60,17 @@ function AppContent() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const handlePublishTask = (newTask) => {
+  const handlePublishTask = async (newTask) => {
+    // 1. Optimistic UI Update
     setJobs([newTask, ...jobs]);
-    showToast(`Task "${newTask.title}" published successfully! Local artisans have been notified.`);
+    showToast(`Task "${newTask.title}" published! Saving to Supabase...`);
+
+    // 2. Persist directly in Supabase Cloud Database
+    const res = await publishTaskToSupabase(newTask);
+    if (res.success && res.task) {
+      setJobs(prevJobs => prevJobs.map(j => (j.id === newTask.id ? res.task : j)));
+      showToast(`Task "${res.task.title}" saved live in Supabase Cloud Database!`);
+    }
   };
 
   const handleRegisterArtisan = (newArtisan) => {
@@ -72,14 +86,15 @@ function AppContent() {
     navigate('/dashboard');
   };
 
-  const handleSubmitOffer = (jobId, offerData) => {
+  const handleSubmitOffer = async (jobId, offerData) => {
     setJobs(jobs.map(j => {
       if (j.id === jobId) {
-        return { ...j, offersCount: j.offersCount + 1 };
+        return { ...j, offersCount: (j.offersCount || 0) + 1 };
       }
       return j;
     }));
-    showToast(`Your quote for ₦${offerData.offerPrice.toLocaleString()} was sent to the client.`);
+    showToast(`Your quote for ₦${(offerData.offerPrice || offerData.price || 5000).toLocaleString()} was sent to the client.`);
+    await submitQuoteToSupabase({ jobId, ...offerData });
   };
 
   // Auth Handlers

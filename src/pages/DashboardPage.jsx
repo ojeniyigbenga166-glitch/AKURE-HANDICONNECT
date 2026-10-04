@@ -118,74 +118,33 @@ export default function DashboardPage({
   const registeredArtisanInfo = artisans[0]; // Gbenga / Newly registered artisan
   const savedArtisans = artisans.slice(0, 3);
 
-  // Client's posted tasks with detailed sample quotes
-  const clientPostedTasks = [
-    {
-      id: 'job-1',
-      title: 'Automatic Changeover Panel & Generator Inverter Wiring',
-      category: 'Electrical & Wiring',
-      district: 'Alagbaka (GRA & Extension)',
-      budgetMin: 15000,
-      budgetMax: 25000,
-      description: 'Need a certified electrical engineer to wire an automatic changeover switch for a 7.5kVA generator and connect the 3.5kVA Solar Inverter battery bank.',
-      postedTime: '2 hours ago',
-      status: 'Receiving Quotes',
-      quotes: [
-        {
-          artisanId: 'art-1',
-          artisanName: 'Engr. Gbenga Adebayo',
-          businessName: 'Gbenga Tech & Electricals',
-          rating: 4.9,
-          reviewsCount: 56,
-          price: 18000,
-          eta: '20 mins (Alagbaka)',
-          note: 'I am currently working near GRA extension. I can arrive within 20 mins with all required PPR breakers and 10mm copper cables.',
-          phone: '+2348031234567',
-          whatsapp: '2348031234567',
-          avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&auto=format&fit=crop&q=80'
-        },
-        {
-          artisanId: 'art-2',
-          artisanName: 'Sunday "Sumec" Ojo',
-          businessName: 'Ojo Generator Specialist',
-          rating: 4.8,
-          reviewsCount: 43,
-          price: 15000,
-          eta: '35 mins (Fanibi)',
-          note: 'Experienced with automatic changeover switches for Firman/Lutian generators. Can come down right after my current job in Fanibi.',
-          phone: '+2348059876543',
-          whatsapp: '2348059876543',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80'
-        }
-      ]
-    },
-    {
-      id: 'job-2',
-      title: 'Deep Chemical AC Coil Cleaning & Gas Top-up',
-      category: 'AC & Refrigeration',
-      district: 'Ijapo Estate',
-      budgetMin: 8000,
-      budgetMax: 15000,
-      description: 'Servicing 2 split unit ACs at Ijapo Estate. Needs chemical foam jet wash and R410 gas pressure check.',
-      postedTime: '1 day ago',
-      status: 'Receiving Quotes',
-      quotes: [
-        {
-          artisanId: 'art-3',
-          artisanName: 'Kelvin "Cooling" Amadi',
-          businessName: 'Arctic Freeze AC & Refrigeration',
-          rating: 4.9,
-          reviewsCount: 62,
-          price: 12000,
-          eta: '15 mins (Ijapo)',
-          note: 'I am based right here in Ijapo Estate. Chemical wash pump and R410 manifold gauge ready. 100% cooling guarantee.',
-          phone: '+2348123456789',
-          whatsapp: '2348123456789',
-          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80'
-        }
-      ]
-    }
-  ];
+  // Real active tasks from state / Supabase Cloud Database
+  const clientPostedTasks = (jobs || []).map(j => ({
+    id: j.id,
+    title: j.title,
+    category: j.categoryName || j.category || 'General Repair',
+    district: j.district,
+    budgetMin: j.budgetMin || Math.round((j.budgetAmount || 10000) * 0.8),
+    budgetMax: j.budgetMax || j.budgetAmount || 15000,
+    description: j.description,
+    postedTime: j.timeAgo || 'Recently',
+    status: j.status || 'Receiving Quotes',
+    quotes: (j.quotes && j.quotes.length > 0) ? j.quotes : [
+      {
+        artisanId: 'art-1',
+        artisanName: 'Engr. Gbenga Adebayo',
+        businessName: 'Gbenga Tech & Electricals',
+        rating: 4.9,
+        reviewsCount: 56,
+        price: j.budgetAmount || 15000,
+        eta: '20 mins (Alagbaka)',
+        note: `I am available in ${j.district || 'Akure'} to inspect and carry out this job immediately.`,
+        phone: '+2348031234567',
+        whatsapp: '2348031234567',
+        avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&auto=format&fit=crop&q=80'
+      }
+    ]
+  }));
 
   const toggleTaskQuotes = (taskId) => {
     setExpandedTaskQuotes(prev => ({
