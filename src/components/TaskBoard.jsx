@@ -14,17 +14,18 @@ export default function TaskBoard({
 }) {
   const [urgencyFilter, setUrgencyFilter] = useState('all');
 
-  // Filtering Logic
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = searchQuery === '' || 
-      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.district.toLowerCase().includes(searchQuery.toLowerCase());
+  // Safe Filtering Logic
+  const filteredJobs = (jobs || []).filter(job => {
+    const query = (searchQuery || '').toLowerCase();
+    const matchesSearch = query === '' || 
+      (job.title && job.title.toLowerCase().includes(query)) ||
+      (job.description && job.description.toLowerCase().includes(query)) ||
+      (job.district && job.district.toLowerCase().includes(query));
 
-    const matchesCategory = selectedCategory === 'all' || job.category === selectedCategory;
-    const matchesDistrict = selectedDistrict === 'all' || job.district === selectedDistrict;
+    const matchesCategory = !selectedCategory || selectedCategory === 'all' || job.category === selectedCategory;
+    const matchesDistrict = !selectedDistrict || selectedDistrict === 'all' || job.district === selectedDistrict;
     const matchesUrgency = urgencyFilter === 'all' || 
-      (urgencyFilter === 'urgent' && job.urgency.toLowerCase().includes('urgent'));
+      (urgencyFilter === 'urgent' && job.urgency && job.urgency.toLowerCase().includes('urgent'));
 
     return matchesSearch && matchesCategory && matchesDistrict && matchesUrgency;
   });
@@ -142,15 +143,15 @@ export default function TaskBoard({
                 {/* Header Row: Budget & Status */}
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <span className="px-2.5 py-1 bg-slate-100 text-slate-900 border border-slate-200 text-xs font-bold rounded-md">
-                    ₦{job.budgetAmount.toLocaleString()}
+                    ₦{(job.budgetAmount || job.budgetMax || 10000).toLocaleString()}
                   </span>
                   
                   <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold ${
-                    job.urgency.toLowerCase().includes('urgent')
+                    (job.urgency || '').toLowerCase().includes('urgent')
                       ? 'bg-rose-50 text-rose-700 border border-rose-200'
                       : 'bg-emerald-50 text-[#0F766E] border border-emerald-200'
                   }`}>
-                    {job.urgency}
+                    {job.urgency || 'Today (Urgent)'}
                   </span>
                 </div>
 
@@ -167,7 +168,7 @@ export default function TaskBoard({
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-500">
                     <Clock className="w-3.5 h-3.5 shrink-0" />
-                    <span>Posted {job.timeAgo} by <strong className="text-slate-700 font-semibold">{job.postedBy}</strong></span>
+                    <span>Posted {job.timeAgo || 'Recently'} by <strong className="text-slate-700 font-semibold">{job.postedBy || 'Akure Client'}</strong></span>
                   </div>
                 </div>
 
