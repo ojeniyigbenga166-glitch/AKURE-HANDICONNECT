@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Phone, MapPin, Wrench, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
 import { AKURE_DISTRICTS, CATEGORIES } from '../data/mockData';
+import { signInWithEmail, signUpClientUser } from '../services/authService';
 
 export default function AuthModal({
   isOpen,
@@ -26,54 +27,54 @@ export default function AuthModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
 
-    setTimeout(() => {
-      setLoading(false);
-
+    try {
       if (mode === 'signin') {
-        onAuthenticate({
-          user: {
-            email,
-            name: fullName || 'Chief Olumide',
-            role: 'client',
-            phone: phone || '+2348031234567'
-          },
-          role: 'client'
-        });
+        const res = await signInWithEmail(email, password);
+        setLoading(false);
+        if (!res.success) {
+          setErrorMsg(res.error || 'Failed to sign in. Please verify your email & password.');
+          return;
+        }
+        onAuthenticate({ user: res.user, role: res.role });
+        onClose();
       } else if (mode === 'signup-client') {
-        onAuthenticate({
-          user: {
-            email,
-            name: fullName || 'Akure Client',
-            role: 'client',
-            phone: phone || '+2348031234567',
-            district
-          },
-          role: 'client'
-        });
+        const res = await signUpClientUser(email, password, fullName, phone, district);
+        setLoading(false);
+        if (!res.success) {
+          setErrorMsg(res.error || 'Client registration failed.');
+          return;
+        }
+        onAuthenticate({ user: res.user, role: 'client' });
+        onClose();
       } else if (mode === 'signup-artisan') {
+        const res = await signUpClientUser(email, password, fullName || businessName, phone, district);
+        setLoading(false);
+        if (!res.success) {
+          setErrorMsg(res.error || 'Artisan registration failed.');
+          return;
+        }
         onAuthenticate({
           user: {
-            email,
-            name: fullName || businessName || 'Verified Artisan',
+            ...res.user,
             businessName: businessName || fullName,
             role: 'artisan',
             category,
-            phone: phone || '+2348031234567',
-            district,
             experienceYears,
             startingRate
           },
           role: 'artisan'
         });
+        onClose();
       }
-
-      onClose();
-    }, 600);
+    } catch (err) {
+      setLoading(false);
+      setErrorMsg(err.message || 'Authentication encountered an issue.');
+    }
   };
 
   return (
@@ -108,6 +109,14 @@ export default function AuthModal({
             {mode === 'signup-artisan' && 'Receive direct WhatsApp job alerts from clients in Akure.'}
           </p>
         </div>
+
+        {/* Error Alert Banner */}
+        {errorMsg && (
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs font-semibold flex items-center justify-between">
+            <span>⚠️ {errorMsg}</span>
+            <button onClick={() => setErrorMsg('')} className="font-bold ml-2">✕</button>
+          </div>
+        )}
 
         {/* Mode Navigation Tabs */}
         <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 text-xs font-semibold">

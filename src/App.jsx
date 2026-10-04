@@ -14,6 +14,7 @@ import AuthModal from './components/AuthModal';
 
 import { INITIAL_ARTISANS, INITIAL_JOBS } from './data/mockData';
 import { fetchArtisansFromSupabase } from './services/artisanService';
+import { getCurrentSession, signOutUser } from './services/authService';
 
 function AppContent() {
   const [artisans, setArtisans] = useState(INITIAL_ARTISANS);
@@ -29,15 +30,23 @@ function AppContent() {
 
   const navigate = useNavigate();
 
-  // Load real artisans from Supabase Cloud Database on startup
+  // Load real artisans & active Supabase Auth session on startup
   useEffect(() => {
-    async function loadSupabaseArtisans() {
+    async function loadInitialData() {
       const data = await fetchArtisansFromSupabase();
       if (data && data.length > 0) {
         setArtisans(data);
       }
+
+      const activeUser = await getCurrentSession();
+      if (activeUser) {
+        setCurrentUser(activeUser);
+        if (activeUser.role === 'artisan') {
+          setIsRegisteredArtisan(true);
+        }
+      }
     }
-    loadSupabaseArtisans();
+    loadInitialData();
   }, []);
 
   const showToast = (msg) => {
@@ -126,7 +135,8 @@ function AppContent() {
     navigate('/dashboard');
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    await signOutUser();
     setCurrentUser(null);
     setIsRegisteredArtisan(false);
     showToast('Signed out successfully.');
