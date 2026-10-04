@@ -1,5 +1,5 @@
 -- ====================================================================
--- AKURE HANDICONNECT - SUPABASE DATABASE SCHEMA
+-- AKURE HANDICONNECT - SUPABASE DATABASE SCHEMA (IDEMPOTENT)
 -- Execute this SQL in Supabase SQL Editor (https://supabase.com/dashboard)
 -- ====================================================================
 
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS public.quotes (
 -- 4. User Profiles Table (Client & Artisan Phone Logins)
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    phone TEXT UNIQUE NOT NULL,
+    phone TEXT,
     full_name TEXT,
     role TEXT DEFAULT 'client' NOT NULL, -- 'client', 'artisan', 'admin'
     district TEXT DEFAULT 'Alagbaka (GRA & Extension)',
@@ -71,7 +71,20 @@ ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.quotes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Allow Public Read Access for landing page & directory search
+-- Safely Drop Existing RLS Policies before Re-creating
+DROP POLICY IF EXISTS "Allow public read on artisans" ON public.artisans;
+DROP POLICY IF EXISTS "Allow public insert on artisans" ON public.artisans;
+
+DROP POLICY IF EXISTS "Allow public read on tasks" ON public.tasks;
+DROP POLICY IF EXISTS "Allow public insert on tasks" ON public.tasks;
+
+DROP POLICY IF EXISTS "Allow public read on quotes" ON public.quotes;
+DROP POLICY IF EXISTS "Allow public insert on quotes" ON public.quotes;
+
+DROP POLICY IF EXISTS "Allow public read on profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Allow public insert/update on profiles" ON public.profiles;
+
+-- Allow Public Read & Insert Access
 CREATE POLICY "Allow public read on artisans" ON public.artisans FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on artisans" ON public.artisans FOR INSERT WITH CHECK (true);
 
