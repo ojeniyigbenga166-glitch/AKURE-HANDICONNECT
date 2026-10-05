@@ -108,12 +108,35 @@ export default function TaskBoard({
                 setSelectedDistrict('all');
                 setUrgencyFilter('all');
               }}
-              className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition-all"
+              className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition-all cursor-pointer"
             >
               Reset Filters
             </button>
           </div>
 
+        </div>
+
+        {/* Niche Quick-Filter Pills for Artisans */}
+        <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+            Filter Niche:
+          </span>
+          {CATEGORIES.map((cat) => {
+            const isActive = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-[#0F766E] text-white shadow-xs font-bold'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/80'
+                }`}
+              >
+                {cat.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 

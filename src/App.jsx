@@ -16,6 +16,7 @@ import { INITIAL_ARTISANS, INITIAL_JOBS } from './data/mockData';
 import { fetchArtisansFromSupabase } from './services/artisanService';
 import { getCurrentSession, signOutUser } from './services/authService';
 import { fetchTasksFromSupabase, publishTaskToSupabase, submitQuoteToSupabase } from './services/taskService';
+import { supabase } from './lib/supabase';
 
 function AppContent() {
   const [artisans, setArtisans] = useState(INITIAL_ARTISANS);
@@ -31,7 +32,7 @@ function AppContent() {
 
   const navigate = useNavigate();
 
-  // Load real artisans, tasks & active Supabase Auth session on startup
+  // Load real artisans, tasks & active Supabase Auth session on startup + Realtime & Auto-Sync
   useEffect(() => {
     async function loadInitialData() {
       const dbArtisans = await fetchArtisansFromSupabase();
@@ -52,7 +53,43 @@ function AppContent() {
         }
       }
     }
+
     loadInitialData();
+
+    // 1. Background Auto-Sync every 6 seconds to ensure all users receive newly posted tasks
+    const syncInterval = setInterval(async () => {
+      const freshTasks = await fetchTasksFromSupabase();
+      if (freshTasks && Array.isArray(freshTasks)) {
+        setJobs(freshTasks);
+      }
+    }, 6000);
+
+    // 2. Supabase Realtime channel subscription for instant broadcast
+    let channel;
+    try {
+      channel = supabase
+        .channel('public-tasks-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'tasks' },
+          async () => {
+            const updatedTasks = await fetchTasksFromSupabase();
+            if (updatedTasks && Array.isArray(updatedTasks)) {
+              setJobs(updatedTasks);
+            }
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Realtime channel notice:', e);
+    }
+
+    return () => {
+      clearInterval(syncInterval);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const showToast = (msg) => {
