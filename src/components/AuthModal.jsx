@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Phone, MapPin, Wrench, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
 import { AKURE_DISTRICTS, CATEGORIES } from '../data/mockData';
-import { signInWithEmail, signUpClientUser } from '../services/authService';
+import { signInWithEmail, signUpClientUser, signUpArtisanUser } from '../services/authService';
 
 export default function AuthModal({
   isOpen,
@@ -52,21 +52,24 @@ export default function AuthModal({
         onAuthenticate({ user: res.user, role: 'client' });
         onClose();
       } else if (mode === 'signup-artisan') {
-        const res = await signUpClientUser(email, password, fullName || businessName, phone, district);
+        const res = await signUpArtisanUser(
+          email,
+          password,
+          fullName || businessName,
+          phone,
+          district,
+          businessName,
+          category,
+          experienceYears,
+          startingRate
+        );
         setLoading(false);
         if (!res.success) {
           setErrorMsg(res.error || 'Artisan registration failed.');
           return;
         }
         onAuthenticate({
-          user: {
-            ...res.user,
-            businessName: businessName || fullName,
-            role: 'artisan',
-            category,
-            experienceYears,
-            startingRate
-          },
+          user: res.user,
           role: 'artisan'
         });
         onClose();

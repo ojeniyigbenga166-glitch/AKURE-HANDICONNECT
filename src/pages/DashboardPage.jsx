@@ -175,7 +175,7 @@ export default function DashboardPage({
       <main className="flex-grow py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         
         {/* Mode Switcher Banner if registered as artisan */}
-        {isRegisteredArtisan && (
+        {isArtisanRole && (
           <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 px-4">
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900">
               <ShieldCheck className="w-4 h-4 text-[#0F766E]" />

@@ -22,7 +22,7 @@ export default function TasksPage({
   const [selectedJobForOffer, setSelectedJobForOffer] = useState(null);
 
   const [isPostTaskOpen, setIsPostTaskOpen] = useState(false);
-  const [isBecomeTaskerOpen, setIsBecomeTaskerOpen] = useState(false);
+  const isArtisanRole = currentUser?.role === 'artisan' || isRegisteredArtisan;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans w-full">
@@ -35,7 +35,7 @@ export default function TasksPage({
       />
 
       <main className="flex-grow">
-        {isRegisteredArtisan ? (
+        {isArtisanRole ? (
           <TaskBoard
             jobs={jobs}
             searchQuery={searchQuery}
