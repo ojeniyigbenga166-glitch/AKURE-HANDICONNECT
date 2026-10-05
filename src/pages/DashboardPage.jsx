@@ -114,9 +114,24 @@ export default function DashboardPage({
     );
   }
 
-  // Mock data
-  const registeredArtisanInfo = artisans[0]; // Gbenga / Newly registered artisan
-  const savedArtisans = artisans.slice(0, 3);
+  // Dynamic artisan info & active tasks
+  const registeredArtisanInfo = (artisans || []).find(
+    a => a.phone === currentUser?.phone || a.name === currentUser?.name
+  ) || artisans[0] || {
+    id: currentUser?.id || 'art-user',
+    name: currentUser?.name || 'Verified Artisan',
+    businessName: currentUser?.businessName || currentUser?.name || 'Pro Service',
+    categoryName: 'Skilled Service',
+    rating: 5.0,
+    reviewsCount: 0,
+    completedJobs: 0,
+    startingRate: 5000,
+    phone: currentUser?.phone || '+2348031234567',
+    avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&auto=format&fit=crop&q=80',
+    bio: 'Professional artisan serving Akure.'
+  };
+
+  const savedArtisans = (artisans || []).slice(0, 3);
 
   // Real active tasks from state / Supabase Cloud Database
   const clientPostedTasks = (jobs || []).map(j => ({
@@ -129,21 +144,7 @@ export default function DashboardPage({
     description: j.description,
     postedTime: j.timeAgo || 'Recently',
     status: j.status || 'Receiving Quotes',
-    quotes: (j.quotes && j.quotes.length > 0) ? j.quotes : [
-      {
-        artisanId: 'art-1',
-        artisanName: 'Engr. Gbenga Adebayo',
-        businessName: 'Gbenga Tech & Electricals',
-        rating: 4.9,
-        reviewsCount: 56,
-        price: j.budgetAmount || 15000,
-        eta: '20 mins (Alagbaka)',
-        note: `I am available in ${j.district || 'Akure'} to inspect and carry out this job immediately.`,
-        phone: '+2348031234567',
-        whatsapp: '2348031234567',
-        avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&auto=format&fit=crop&q=80'
-      }
-    ]
+    quotes: j.quotes || []
   }));
 
   const toggleTaskQuotes = (taskId) => {
@@ -916,6 +917,7 @@ export default function DashboardPage({
         onClose={() => setSelectedJobForOffer(null)}
         job={selectedJobForOffer}
         onSubmitOffer={onSubmitOffer}
+        currentUser={currentUser}
       />
 
       <ArtisanDetailModal

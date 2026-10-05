@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import TopCategoriesSection from '../components/TopCategoriesSection';
-import PopularServices from '../components/PopularServices';
 import ArtisansDirectory from '../components/ArtisansDirectory';
 import ValueShowcase from '../components/ValueShowcase';
 import HowItWorks from '../components/HowItWorks';
@@ -89,8 +88,6 @@ export default function Home({
           onOpenBecomeTasker={() => setIsBecomeTaskerOpen(true)}
           limit={3}
         />
-
-        <PopularServices onSelectService={handleSelectCategory} />
 
         <ValueShowcase
           onOpenPostJob={() => setIsPostTaskOpen(true)}

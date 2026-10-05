@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
 import { X, Send, Check } from 'lucide-react';
 
-export default function MakeOfferModal({ isOpen, onClose, job, onSubmitOffer }) {
-  const [artisanName, setArtisanName] = useState('');
-  const [phone, setPhone] = useState('');
+export default function MakeOfferModal({ isOpen, onClose, job, onSubmitOffer, currentUser }) {
+  const [artisanName, setArtisanName] = useState(currentUser?.name || currentUser?.businessName || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
   const [offerPrice, setOfferPrice] = useState('');
   const [arrivalTime, setArrivalTime] = useState('30 minutes');
   const [pitch, setPitch] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.name || currentUser.businessName) {
+        setArtisanName(currentUser.businessName || currentUser.name);
+      }
+      if (currentUser.phone) {
+        setPhone(currentUser.phone);
+      }
+    }
+  }, [currentUser, isOpen]);
 
   if (!isOpen || !job) return null;
 

@@ -35,12 +35,12 @@ function AppContent() {
   useEffect(() => {
     async function loadInitialData() {
       const dbArtisans = await fetchArtisansFromSupabase();
-      if (dbArtisans && dbArtisans.length > 0) {
+      if (dbArtisans && Array.isArray(dbArtisans) && dbArtisans.length > 0) {
         setArtisans(dbArtisans);
       }
 
       const dbTasks = await fetchTasksFromSupabase();
-      if (dbTasks && dbTasks.length > 0) {
+      if (dbTasks && Array.isArray(dbTasks)) {
         setJobs(dbTasks);
       }
 

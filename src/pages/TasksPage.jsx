@@ -93,6 +93,7 @@ export default function TasksPage({
         onClose={() => setSelectedJobForOffer(null)}
         job={selectedJobForOffer}
         onSubmitOffer={onSubmitOffer}
+        currentUser={currentUser}
       />
     </div>
   );

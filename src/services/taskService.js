@@ -2,41 +2,78 @@ import { supabase } from '../lib/supabase';
 import { CATEGORIES } from '../data/mockData';
 
 /**
- * Fetch all tasks from Supabase Cloud Database
+ * Fetch all tasks from Supabase Cloud Database along with submitted quotes
  */
 export async function fetchTasksFromSupabase() {
   try {
-    const { data, error } = await supabase
+    const { data: tasksData, error: tasksError } = await supabase
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.warn('Error fetching tasks from Supabase:', error.message);
-      return null;
+    if (tasksError) {
+      console.warn('Error fetching tasks from Supabase:', tasksError.message);
+      return [];
     }
 
-    return (data || []).map(row => ({
-      id: row.id,
-      title: row.title,
-      category: row.category,
-      categoryName: CATEGORIES.find(c => c.id === row.category)?.name || 'Skilled Repair',
-      district: row.district,
-      budgetType: 'Fixed Budget',
-      budgetAmount: row.budget_max || row.budget_min || 10000,
-      budgetMin: row.budget_min || 5000,
-      budgetMax: row.budget_max || 25000,
-      urgency: row.urgency || 'Today (Urgent)',
-      postedBy: row.posted_by || row.client_phone || 'Akure Resident',
-      timeAgo: formatTimeAgo(row.created_at),
-      status: row.status || 'Open for Quotes',
-      offersCount: row.offers_count || 0,
-      description: row.description,
-      quotes: []
-    }));
+    // Attempt to load quotes from Supabase quotes table
+    let quotesMap = {};
+    try {
+      const { data: quotesData } = await supabase
+        .from('quotes')
+        .select('*');
+
+      if (quotesData) {
+        quotesData.forEach(q => {
+          if (!quotesMap[q.task_id]) {
+            quotesMap[q.task_id] = [];
+          }
+          quotesMap[q.task_id].push({
+            id: q.id,
+            artisanId: q.artisan_id,
+            artisanName: q.artisan_name,
+            businessName: q.business_name || 'Pro Service',
+            rating: 5.0,
+            reviewsCount: 1,
+            price: q.price,
+            eta: q.eta || '30 mins',
+            note: q.note || '',
+            status: q.status || 'Pending',
+            created_at: q.created_at,
+            phone: q.phone || '+2348031234567',
+            whatsapp: (q.phone || '2348031234567').replace('+', ''),
+            avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&auto=format&fit=crop&q=80'
+          });
+        });
+      }
+    } catch (e) {
+      console.warn('Could not load quotes from Supabase:', e);
+    }
+
+    return (tasksData || []).map(row => {
+      const taskQuotes = quotesMap[row.id] || [];
+      return {
+        id: row.id,
+        title: row.title,
+        category: row.category,
+        categoryName: CATEGORIES.find(c => c.id === row.category)?.name || 'Skilled Repair',
+        district: row.district,
+        budgetType: 'Fixed Budget',
+        budgetAmount: row.budget_max || row.budget_min || 10000,
+        budgetMin: row.budget_min || 5000,
+        budgetMax: row.budget_max || 25000,
+        urgency: row.urgency || 'Today (Urgent)',
+        postedBy: row.posted_by || row.client_phone || 'Akure Resident',
+        timeAgo: formatTimeAgo(row.created_at),
+        status: row.status || 'Open for Quotes',
+        offersCount: taskQuotes.length || row.offers_count || 0,
+        description: row.description,
+        quotes: taskQuotes
+      };
+    });
   } catch (err) {
     console.error('Task fetch exception:', err);
-    return null;
+    return [];
   }
 }
 
@@ -137,18 +174,24 @@ export async function publishTaskToSupabase(taskData) {
  */
 export async function submitQuoteToSupabase(quoteData) {
   try {
+    const payload = {
+      task_id: quoteData.jobId,
+      artisan_name: quoteData.artisanName || 'Verified Pro',
+      business_name: quoteData.businessName || 'Pro Services',
+      price: quoteData.price || quoteData.offerPrice || 10000,
+      eta: quoteData.eta || quoteData.arrivalTime || '30 mins',
+      note: quoteData.note || quoteData.pitch || 'Ready to start job in Akure.',
+      status: 'Pending'
+    };
+
+    // If artisanId is a valid UUID, include it
+    if (quoteData.artisanId && quoteData.artisanId.length > 20) {
+      payload.artisan_id = quoteData.artisanId;
+    }
+
     const { data, error } = await supabase
       .from('quotes')
-      .insert({
-        task_id: quoteData.jobId,
-        artisan_id: quoteData.artisanId || 'art-1',
-        artisan_name: quoteData.artisanName || 'Verified Pro',
-        business_name: quoteData.businessName || 'Pro Services',
-        price: quoteData.price || quoteData.offerPrice || 10000,
-        eta: quoteData.eta || '30 mins',
-        note: quoteData.note || 'Ready to start job in Akure.',
-        status: 'Pending'
-      })
+      .insert(payload)
       .select()
       .single();
 
@@ -173,3 +216,4 @@ function formatTimeAgo(dateStr) {
   if (hours < 24) return `${hours} hrs ago`;
   return `${Math.floor(hours / 24)} days ago`;
 }
+
