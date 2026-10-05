@@ -21,11 +21,31 @@ import { supabase } from './lib/supabase';
 function AppContent() {
   const [artisans, setArtisans] = useState(INITIAL_ARTISANS);
   const [jobs, setJobs] = useState(INITIAL_JOBS);
-  const [isRegisteredArtisan, setIsRegisteredArtisan] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Authentication State
-  const [currentUser, setCurrentUser] = useState(null);
+  // Synchronously restore authentication state from localStorage to prevent refresh redirects
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('handiconnect_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [isRegisteredArtisan, setIsRegisteredArtisan] = useState(() => {
+    try {
+      const saved = localStorage.getItem('handiconnect_user');
+      if (saved) {
+        const u = JSON.parse(saved);
+        return u.role === 'artisan';
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  });
+
   const [isAuthSelectionOpen, setIsAuthSelectionOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('signin'); // 'signin' | 'signup-client' | 'signup-artisan'
@@ -51,6 +71,9 @@ function AppContent() {
         if (activeUser.role === 'artisan') {
           setIsRegisteredArtisan(true);
         }
+        try {
+          localStorage.setItem('handiconnect_user', JSON.stringify(activeUser));
+        } catch (e) {}
       }
     }
 
@@ -111,14 +134,19 @@ function AppContent() {
   };
 
   const handleRegisterArtisan = (newArtisan) => {
-    setArtisans([newArtisan, ...artisans]);
-    setIsRegisteredArtisan(true);
-    setCurrentUser({
+    const artisanUser = {
       name: newArtisan.name,
       businessName: newArtisan.businessName,
       role: 'artisan',
       phone: newArtisan.phone
-    });
+    };
+    setArtisans([newArtisan, ...artisans]);
+    setIsRegisteredArtisan(true);
+    setCurrentUser(artisanUser);
+    try {
+      localStorage.setItem('handiconnect_user', JSON.stringify(artisanUser));
+    } catch (e) {}
+
     showToast(`Welcome ${newArtisan.name}! Your professional profile is live.`);
     navigate('/dashboard');
   };
@@ -154,33 +182,41 @@ function AppContent() {
   };
 
   const handleAuthenticate = ({ user, role }) => {
-    setCurrentUser(user);
-    setIsRegisteredArtisan(role === 'artisan');
+    const authenticatedUser = {
+      ...user,
+      role: role || user.role || 'client'
+    };
+    setCurrentUser(authenticatedUser);
+    setIsRegisteredArtisan(role === 'artisan' || authenticatedUser.role === 'artisan');
 
-    if (role === 'artisan') {
+    try {
+      localStorage.setItem('handiconnect_user', JSON.stringify(authenticatedUser));
+    } catch (e) {}
+
+    if (role === 'artisan' || authenticatedUser.role === 'artisan') {
       const newArtisanObj = {
-        id: 'art-' + Date.now(),
-        name: user.name,
-        businessName: user.businessName || user.name,
-        category: user.category || 'electrical',
+        id: authenticatedUser.id || 'art-' + Date.now(),
+        name: authenticatedUser.name,
+        businessName: authenticatedUser.businessName || authenticatedUser.name,
+        category: authenticatedUser.category || 'electrical',
         categoryName: 'Electrical & Inverter Systems',
         rating: 5.0,
         reviewsCount: 0,
         completedJobs: 0,
         badge: 'Verified Pro',
         isVerified: true,
-        experienceYears: user.experienceYears || 5,
-        startingRate: user.startingRate || 5000,
-        phone: user.phone || '+2348031234567',
-        whatsapp: user.phone?.replace('+', '') || '2348031234567',
+        experienceYears: authenticatedUser.experienceYears || 5,
+        startingRate: authenticatedUser.startingRate || 5000,
+        phone: authenticatedUser.phone || '+2348031234567',
+        whatsapp: (authenticatedUser.phone || '2348031234567').replace('+', ''),
         districts: ['Alagbaka (GRA & Extension)', 'Ijapo Estate'],
         avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&auto=format&fit=crop&q=80',
-        bio: `Certified ${user.category || 'handyman'} artisan serving Akure.`
+        bio: `Certified ${authenticatedUser.category || 'handyman'} artisan serving Akure.`
       };
-      setArtisans([newArtisanObj, ...artisans]);
-      showToast(`Welcome ${user.name}! Registered as an Artisan Pro on HandiConnect.`);
+      setArtisans(prev => [newArtisanObj, ...prev.filter(a => a.id !== newArtisanObj.id)]);
+      showToast(`Welcome ${authenticatedUser.name}! Registered as an Artisan Pro on HandiConnect.`);
     } else {
-      showToast(`Welcome back ${user.name}! Signed in to Client Dashboard.`);
+      showToast(`Welcome back ${authenticatedUser.name}! Signed in to Client Dashboard.`);
     }
 
     // Immediately navigate user directly to their dashboard according to role!
@@ -191,6 +227,9 @@ function AppContent() {
     await signOutUser();
     setCurrentUser(null);
     setIsRegisteredArtisan(false);
+    try {
+      localStorage.removeItem('handiconnect_user');
+    } catch (e) {}
     showToast('Signed out successfully.');
     navigate('/');
   };
