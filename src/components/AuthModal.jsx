@@ -6,11 +6,14 @@ import { signInWithEmail, signUpClientUser, signUpArtisanUser } from '../service
 export default function AuthModal({
   isOpen,
   onClose,
-  initialMode = 'client', // 'client' | 'artisan' | 'signup-client' | 'signup-artisan'
+  initialMode = 'client', // 'client' | 'artisan' | 'signin' | 'signup-client' | 'signup-artisan'
   onAuthenticate
 }) {
   const [roleMode, setRoleMode] = useState(
     initialMode === 'signup-artisan' || initialMode === 'artisan' ? 'artisan' : 'client'
+  );
+  const [authSubMode, setAuthSubMode] = useState(
+    initialMode === 'signin' ? 'signin' : 'signup'
   );
 
   // Form State
@@ -23,11 +26,19 @@ export default function AuthModal({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Sync role mode when modal opens or initialMode changes
+  // Sync role & sub-mode when modal opens or initialMode changes
   useEffect(() => {
     if (isOpen) {
-      const targetRole = initialMode === 'signup-artisan' || initialMode === 'artisan' ? 'artisan' : 'client';
-      setRoleMode(targetRole);
+      if (initialMode === 'signin') {
+        setAuthSubMode('signin');
+        setRoleMode('client');
+      } else if (initialMode === 'signup-artisan' || initialMode === 'artisan') {
+        setRoleMode('artisan');
+        setAuthSubMode('signup');
+      } else {
+        setRoleMode('client');
+        setAuthSubMode('signup');
+      }
       setErrorMsg('');
     }
   }, [initialMode, isOpen]);
@@ -37,11 +48,11 @@ export default function AuthModal({
   const handleGoogleSignIn = () => {
     setLoading(true);
     setTimeout(() => {
-      const selectedRole = roleMode; // 'client' or 'artisan'
+      const selectedRole = roleMode;
       const mockGoogleUser = {
         id: 'google-usr-' + Date.now(),
-        email: email || (selectedRole === 'artisan' ? 'marvellous.artisan@gmail.com' : 'client.user@gmail.com'),
-        name: fullName || (selectedRole === 'artisan' ? 'Marvellous Adebayo' : 'Akure Client'),
+        email: email || (selectedRole === 'artisan' ? 'marvellous.artisan@gmail.com' : 'lorencedock123@gmail.com'),
+        name: fullName || (selectedRole === 'artisan' ? 'Marvellous Adebayo' : 'Gbenga'),
         businessName: fullName ? `${fullName} Services` : 'Adebayo Electrical & Tech Pro',
         phone: '08031234567',
         district: district || 'Alagbaka (GRA & Extension)',
@@ -62,50 +73,48 @@ export default function AuthModal({
     const selectedRole = roleMode; // 'client' or 'artisan'
 
     try {
-      if (selectedRole === 'artisan') {
-        const res = await signUpArtisanUser(
-          email,
-          password,
-          fullName || 'Artisan Pro',
-          '08031234567',
-          district || 'Alagbaka (GRA & Extension)',
-          fullName || 'Artisan Services',
-          category || 'electrical',
-          5,
-          5000
-        );
+      if (authSubMode === 'signin') {
+        // Sign In Flow (Email & Password only)
+        const res = await signInWithEmail(email, password);
         setLoading(false);
         if (!res.success) {
-          const signInRes = await signInWithEmail(email, password);
-          if (!signInRes.success) {
-            setErrorMsg(signInRes.error || 'Artisan sign in failed.');
-            return;
-          }
-          onAuthenticate({ user: { ...signInRes.user, role: 'artisan' }, role: 'artisan' });
-          onClose();
+          setErrorMsg(res.error || 'Sign in failed. Please check your email and password.');
           return;
         }
-        onAuthenticate({
-          user: { ...res.user, role: 'artisan' },
-          role: 'artisan'
-        });
+        onAuthenticate({ user: { ...res.user, role: selectedRole }, role: selectedRole });
         onClose();
       } else {
-        // Client Mode
-        const res = await signUpClientUser(email, password, fullName || 'Client', '08031234567', district);
-        setLoading(false);
-        if (!res.success) {
-          const signInRes = await signInWithEmail(email, password);
-          if (!signInRes.success) {
-            setErrorMsg(signInRes.error || 'Client sign in failed.');
+        // Sign Up Flow
+        if (selectedRole === 'artisan') {
+          const res = await signUpArtisanUser(
+            email,
+            password,
+            fullName || 'Artisan Pro',
+            '08031234567',
+            district || 'Alagbaka (GRA & Extension)',
+            fullName || 'Artisan Services',
+            category || 'electrical',
+            5,
+            5000
+          );
+          setLoading(false);
+          if (!res.success) {
+            setErrorMsg(res.error || 'Artisan registration failed.');
             return;
           }
-          onAuthenticate({ user: { ...signInRes.user, role: 'client' }, role: 'client' });
+          onAuthenticate({ user: { ...res.user, role: 'artisan' }, role: 'artisan' });
           onClose();
-          return;
+        } else {
+          // Client Registration
+          const res = await signUpClientUser(email, password, fullName || 'Gbenga', '08031234567', district);
+          setLoading(false);
+          if (!res.success) {
+            setErrorMsg(res.error || 'Client account registration failed.');
+            return;
+          }
+          onAuthenticate({ user: { ...res.user, role: 'client' }, role: 'client' });
+          onClose();
         }
-        onAuthenticate({ user: { ...res.user, role: 'client' }, role: 'client' });
-        onClose();
       }
     } catch (err) {
       setLoading(false);
@@ -132,7 +141,9 @@ export default function AuthModal({
           </span>
 
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight pt-1">
-            {roleMode === 'artisan' ? 'Sign In / Register as Artisan' : 'Sign In / Register as Client'}
+            {authSubMode === 'signin'
+              ? `Sign In as ${roleMode === 'artisan' ? 'Artisan' : 'Client'}`
+              : `Create ${roleMode === 'artisan' ? 'Artisan Pro' : 'Client'} Account`}
           </h2>
 
           <p className="text-xs text-slate-500 font-normal">
@@ -150,7 +161,7 @@ export default function AuthModal({
           </div>
         )}
 
-        {/* 2 Role Buttons: Client & Artisan (Removed standalone Sign In button) */}
+        {/* 1. Primary Role Selection Tabs: Client vs Artisan */}
         <div className="bg-slate-100 p-1.5 rounded-xl flex items-center gap-1.5 text-xs font-semibold border border-slate-200">
           <button
             type="button"
@@ -173,6 +184,32 @@ export default function AuthModal({
             }`}
           >
             <span>🛠️ Artisan</span>
+          </button>
+        </div>
+
+        {/* 2. Sub-mode Switcher Pills: Sign Up vs Sign In */}
+        <div className="flex items-center justify-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200 text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setAuthSubMode('signup')}
+            className={`flex-1 py-1.5 rounded-md transition-all cursor-pointer ${
+              authSubMode === 'signup'
+                ? 'bg-[#0F766E] text-white font-bold'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Sign Up (New)
+          </button>
+          <button
+            type="button"
+            onClick={() => setAuthSubMode('signin')}
+            className={`flex-1 py-1.5 rounded-md transition-all cursor-pointer ${
+              authSubMode === 'signin'
+                ? 'bg-[#0F766E] text-white font-bold'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Sign In (Existing)
           </button>
         </div>
 
@@ -211,25 +248,27 @@ export default function AuthModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           
-          {/* Full Name */}
-          <div>
-            <label className="block font-semibold text-slate-700 mb-1">
-              {roleMode === 'artisan' ? 'Owner / Your Full Name' : 'Full Name'}
-            </label>
-            <div className="relative">
-              <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder={roleMode === 'artisan' ? 'e.g. Marvellous Adebayo' : 'e.g. Femi Ogundele'}
-                className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
-              />
+          {/* Full Name (ONLY SHOWN FOR SIGN UP) */}
+          {authSubMode === 'signup' && (
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                {roleMode === 'artisan' ? 'Owner / Your Full Name' : 'Full Name'}
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder={roleMode === 'artisan' ? 'e.g. Marvellous Adebayo' : 'e.g. Gbenga'}
+                  className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Email Address */}
+          {/* Email Address (ALWAYS SHOWN) */}
           <div>
             <label className="block font-semibold text-slate-700 mb-1">Email Address</label>
             <div className="relative">
@@ -239,13 +278,13 @@ export default function AuthModal({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
+                placeholder="lorencedock123@gmail.com"
                 className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
               />
             </div>
           </div>
 
-          {/* Password */}
+          {/* Password (ALWAYS SHOWN) */}
           <div>
             <label className="block font-semibold text-slate-700 mb-1">Password</label>
             <div className="relative">
@@ -255,14 +294,14 @@ export default function AuthModal({
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="•••••••••••••"
                 className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
               />
             </div>
           </div>
 
-          {/* Trade Category for Artisan */}
-          {roleMode === 'artisan' && (
+          {/* Trade Category for Artisan (ONLY SHOWN FOR SIGN UP) */}
+          {authSubMode === 'signup' && roleMode === 'artisan' && (
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Primary Trade Category</label>
               <select
@@ -277,8 +316,8 @@ export default function AuthModal({
             </div>
           )}
 
-          {/* Akure Neighborhood District for Client */}
-          {roleMode === 'client' && (
+          {/* Primary Akure Neighborhood for Client (ONLY SHOWN FOR SIGN UP) */}
+          {authSubMode === 'signup' && roleMode === 'client' && (
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Primary Akure Neighborhood</label>
               <select
@@ -304,7 +343,9 @@ export default function AuthModal({
             ) : (
               <>
                 <span>
-                  {roleMode === 'artisan' ? 'Open Artisan Pro Dashboard 🛠️' : 'Open Client Dashboard 👤'}
+                  {authSubMode === 'signin'
+                    ? `Sign In to ${roleMode === 'artisan' ? 'Artisan' : 'Client'} Dashboard`
+                    : `Create ${roleMode === 'artisan' ? 'Artisan Pro' : 'Client'} Account`}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </>
