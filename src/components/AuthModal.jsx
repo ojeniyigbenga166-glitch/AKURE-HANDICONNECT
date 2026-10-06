@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Phone, MapPin, Wrench, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
 import { AKURE_DISTRICTS, CATEGORIES } from '../data/mockData';
 import { signInWithEmail, signUpClientUser, signUpArtisanUser } from '../services/authService';
@@ -25,6 +25,14 @@ export default function AuthModal({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Sync mode with initialMode whenever modal opens or initialMode changes
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      setErrorMsg('');
+    }
+  }, [initialMode, isOpen]);
+
   if (!isOpen) return null;
 
   const handleGoogleSignIn = (targetRole) => {
@@ -46,6 +54,63 @@ export default function AuthModal({
       onClose();
     }, 300);
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg('');
+
+    try {
+      if (mode === 'signin') {
+        const res = await signInWithEmail(email, password);
+        setLoading(false);
+        if (!res.success) {
+          setErrorMsg(res.error || 'Failed to sign in. Please verify your email & password.');
+          return;
+        }
+        onAuthenticate({ user: res.user, role: res.role });
+        onClose();
+      } else if (mode === 'signup-client') {
+        const res = await signUpClientUser(email, password, fullName, phone, district);
+        setLoading(false);
+        if (!res.success) {
+          setErrorMsg(res.error || 'Client registration failed.');
+          return;
+        }
+        onAuthenticate({ user: res.user, role: 'client' });
+        onClose();
+      } else if (mode === 'signup-artisan') {
+        const res = await signUpArtisanUser(
+          email,
+          password,
+          fullName || businessName || 'Artisan Pro',
+          phone || '08031234567',
+          district || 'Alagbaka (GRA & Extension)',
+          businessName || fullName || 'Artisan Services',
+          category || 'electrical',
+          experienceYears || 5,
+          startingRate || 5000
+        );
+        setLoading(false);
+        if (!res.success) {
+          setErrorMsg(res.error || 'Artisan registration failed.');
+          return;
+        }
+        onAuthenticate({
+          user: {
+            ...res.user,
+            role: 'artisan'
+          },
+          role: 'artisan'
+        });
+        onClose();
+      }
+    } catch (err) {
+      setLoading(false);
+      setErrorMsg(err.message || 'Authentication encountered an issue.');
+    }
+  };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 animate-in fade-in">
