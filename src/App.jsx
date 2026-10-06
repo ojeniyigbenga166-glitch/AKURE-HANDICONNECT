@@ -234,6 +234,31 @@ function AppContent() {
     navigate('/');
   };
 
+  const handleUpdateArtisanProfile = (updatedArtisan) => {
+    const updatedUser = {
+      ...currentUser,
+      name: updatedArtisan.name,
+      businessName: updatedArtisan.businessName,
+      phone: updatedArtisan.phone,
+      district: updatedArtisan.district || (updatedArtisan.districts && updatedArtisan.districts[0]) || currentUser?.district,
+      category: updatedArtisan.category
+    };
+    setCurrentUser(updatedUser);
+    try {
+      localStorage.setItem('handiconnect_user', JSON.stringify(updatedUser));
+    } catch (e) {}
+
+    setArtisans(prev => {
+      const exists = prev.some(a => a.id === updatedArtisan.id);
+      if (exists) {
+        return prev.map(a => (a.id === updatedArtisan.id ? { ...a, ...updatedArtisan } : a));
+      }
+      return [updatedArtisan, ...prev];
+    });
+
+    showToast(`Profile settings for ${updatedArtisan.businessName || updatedArtisan.name} saved!`);
+  };
+
   return (
     <>
       {/* Toast Alert Banner */}
@@ -270,12 +295,14 @@ function AppContent() {
               currentUser={currentUser}
               onPublishTask={handlePublishTask}
               onRegisterArtisan={handleRegisterArtisan}
+              onUpdateArtisanProfile={handleUpdateArtisanProfile}
               onSubmitOffer={handleSubmitOffer}
               onOpenAuthSelection={() => setIsAuthSelectionOpen(true)}
               onSignOut={handleSignOut}
             />
           }
         />
+
         <Route
           path="/artisans"
           element={

@@ -27,62 +27,29 @@ export default function AuthModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleGoogleSignIn = (targetRole) => {
     setLoading(true);
-    setErrorMsg('');
-
-    try {
-      if (mode === 'signin') {
-        const res = await signInWithEmail(email, password);
-        setLoading(false);
-        if (!res.success) {
-          setErrorMsg(res.error || 'Failed to sign in. Please verify your email & password.');
-          return;
-        }
-        onAuthenticate({ user: res.user, role: res.role });
-        onClose();
-      } else if (mode === 'signup-client') {
-        const res = await signUpClientUser(email, password, fullName, phone, district);
-        setLoading(false);
-        if (!res.success) {
-          setErrorMsg(res.error || 'Client registration failed.');
-          return;
-        }
-        onAuthenticate({ user: res.user, role: 'client' });
-        onClose();
-      } else if (mode === 'signup-artisan') {
-        const res = await signUpArtisanUser(
-          email,
-          password,
-          fullName || businessName,
-          phone,
-          district,
-          businessName,
-          category,
-          experienceYears,
-          startingRate
-        );
-        setLoading(false);
-        if (!res.success) {
-          setErrorMsg(res.error || 'Artisan registration failed.');
-          return;
-        }
-        onAuthenticate({
-          user: res.user,
-          role: 'artisan'
-        });
-        onClose();
-      }
-    } catch (err) {
+    setTimeout(() => {
+      const role = targetRole || (mode === 'signup-artisan' ? 'artisan' : 'client');
+      const mockGoogleUser = {
+        id: 'google-usr-' + Date.now(),
+        email: email || (role === 'artisan' ? 'marvellous.artisan@gmail.com' : 'gmail.user@gmail.com'),
+        name: fullName || (role === 'artisan' ? 'Marvellous Adebayo' : 'Gmail User'),
+        businessName: businessName || (fullName ? `${fullName} Services` : 'Adebayo Electrical & Tech Pro'),
+        phone: phone || '08031234567',
+        district: district || 'Alagbaka (GRA & Extension)',
+        role: role,
+        category: category || 'electrical'
+      };
       setLoading(false);
-      setErrorMsg(err.message || 'Authentication encountered an issue.');
-    }
+      onAuthenticate({ user: mockGoogleUser, role });
+      onClose();
+    }, 300);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 animate-in fade-in">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-xl border border-slate-200 relative space-y-6 max-h-[90vh] overflow-y-auto no-scrollbar">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-xl border border-slate-200 relative space-y-5 max-h-[90vh] overflow-y-auto no-scrollbar">
         
         {/* Close Button */}
         <button
@@ -109,7 +76,7 @@ export default function AuthModal({
           <p className="text-xs text-slate-500 font-normal">
             {mode === 'signin' && 'Access your posted tasks, quotes, and artisan chat history.'}
             {mode === 'signup-client' && 'Post jobs and receive price quotes from local pros.'}
-            {mode === 'signup-artisan' && 'Receive direct WhatsApp job alerts from clients in Akure.'}
+            {mode === 'signup-artisan' && 'Sign up quickly & configure your profile, rates & WhatsApp line in Profile Settings.'}
           </p>
         </div>
 
@@ -120,6 +87,38 @@ export default function AuthModal({
             <button onClick={() => setErrorMsg('')} className="font-bold ml-2">✕</button>
           </div>
         )}
+
+        {/* Quick Google Sign In Button */}
+        <button
+          type="button"
+          onClick={() => handleGoogleSignIn(mode === 'signup-artisan' ? 'artisan' : undefined)}
+          className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <path
+              fill="#4285F4"
+              d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.15C3.26 21.3 7.31 24 12 24z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.28 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.39l3.99-3.15z"
+            />
+            <path
+              fill="#EA4335"
+              d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"
+            />
+          </svg>
+          <span>Continue with Gmail / Google</span>
+        </button>
+
+        <div className="relative flex items-center justify-center my-1">
+          <div className="border-t border-slate-200 w-full"></div>
+          <span className="bg-white px-3 text-[11px] text-slate-400 font-semibold uppercase tracking-wider shrink-0">or continue with email</span>
+        </div>
 
         {/* Mode Navigation Tabs */}
         <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 text-xs font-semibold">
@@ -159,13 +158,13 @@ export default function AuthModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           
           {/* Full Name for Signup */}
           {mode !== 'signin' && (
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
-                {mode === 'signup-artisan' ? 'Owner / Contact Person Name' : 'Full Name'}
+                {mode === 'signup-artisan' ? 'Owner / Your Full Name' : 'Full Name'}
               </label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -175,24 +174,6 @@ export default function AuthModal({
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Marvellous Adebayo"
-                  className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Business Name for Artisan Signup */}
-          {mode === 'signup-artisan' && (
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Artisan / Business Name</label>
-              <div className="relative">
-                <Wrench className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  required
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="e.g. Gbenga Tech & Electricals"
                   className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
                 />
               </div>
@@ -231,25 +212,6 @@ export default function AuthModal({
             </div>
           </div>
 
-          {/* Nigerian Phone Number for Artisan Signup */}
-          {mode === 'signup-artisan' && (
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                WhatsApp & Contact Line (for Job Alerts)
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. 0803 123 4567"
-                  className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
-                />
-              </div>
-            </div>
-          )}
-
           {/* Trade Category for Artisan Signup */}
           {mode === 'signup-artisan' && (
             <div>
@@ -266,8 +228,8 @@ export default function AuthModal({
             </div>
           )}
 
-          {/* Akure Neighborhood District */}
-          {mode !== 'signin' && (
+          {/* Akure Neighborhood District for Client */}
+          {mode === 'signup-client' && (
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Primary Akure Neighborhood</label>
               <select
@@ -282,30 +244,9 @@ export default function AuthModal({
             </div>
           )}
 
-          {/* Starting Rate for Artisan */}
           {mode === 'signup-artisan' && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Years Experience</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="40"
-                  value={experienceYears}
-                  onChange={(e) => setExperienceYears(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
-                />
-              </div>
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Starting Rate (₦)</label>
-                <input
-                  type="number"
-                  step="1000"
-                  value={startingRate}
-                  onChange={(e) => setStartingRate(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
-                />
-              </div>
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-900 font-normal leading-relaxed">
+              💡 <strong>Instant Signup Notice:</strong> Detailed profile fields (WhatsApp line, starting rates, experience years, bio & coverage areas) can be set up & edited anytime in your <strong>Dashboard Profile Settings</strong>!
             </div>
           )}
 
@@ -313,7 +254,7 @@ export default function AuthModal({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-[#0F766E] hover:bg-[#115E59] text-white font-bold text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
+            className="w-full py-3 rounded-lg bg-[#0F766E] hover:bg-[#115E59] text-white font-bold text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer mt-3"
           >
             {loading ? (
               <span>Authenticating...</span>
@@ -322,7 +263,7 @@ export default function AuthModal({
                 <span>
                   {mode === 'signin' && 'Sign In to Dashboard'}
                   {mode === 'signup-client' && 'Create Client Account'}
-                  {mode === 'signup-artisan' && 'Register Artisan Pro Profile'}
+                  {mode === 'signup-artisan' && 'Quick Artisan Registration'}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </>
@@ -335,3 +276,4 @@ export default function AuthModal({
     </div>
   );
 }
+

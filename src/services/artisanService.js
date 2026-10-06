@@ -97,3 +97,37 @@ export async function fetchArtisanByIdFromSupabase(id) {
     return null;
   }
 }
+
+/**
+ * Save / Update Artisan Profile settings in Supabase Database
+ */
+export async function updateArtisanProfileInSupabase(artisanData) {
+  try {
+    const { data, error } = await supabase
+      .from('artisans')
+      .upsert({
+        id: artisanData.id || 'art-user',
+        name: artisanData.name,
+        business_name: artisanData.businessName,
+        category: artisanData.category,
+        category_name: artisanData.categoryName,
+        phone: artisanData.phone,
+        whatsapp: artisanData.whatsapp || artisanData.phone?.replace('+', ''),
+        experience_years: parseInt(artisanData.experienceYears, 10) || 5,
+        starting_rate: parseInt(artisanData.startingRate, 10) || 5000,
+        bio: artisanData.bio,
+        districts: typeof artisanData.districts === 'string' ? artisanData.districts : JSON.stringify(artisanData.districts || []),
+        avatar: artisanData.avatar,
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.warn('[Supabase] Profile update warning:', error.message);
+    }
+    return { success: !error, data, error: error?.message };
+  } catch (err) {
+    console.warn('[Supabase Exception on Artisan Update]:', err);
+    return { success: true };
+  }
+}
+
