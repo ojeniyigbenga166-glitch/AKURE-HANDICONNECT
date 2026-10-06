@@ -182,39 +182,52 @@ function AppContent() {
   };
 
   const handleAuthenticate = ({ user, role }) => {
+    const isMatchingArtisanInState = (artisans || []).some(a => 
+      a.id === user.id || 
+      (user.email && a.email?.toLowerCase() === user.email?.toLowerCase()) || 
+      (user.phone && a.phone === user.phone) ||
+      (user.name && a.name?.toLowerCase() === user.name?.toLowerCase())
+    );
+
+    const isArtisanRole = role === 'artisan' || user.role === 'artisan' || isMatchingArtisanInState;
+    const finalRole = isArtisanRole ? 'artisan' : (role || user.role || 'client');
+
     const authenticatedUser = {
       ...user,
-      role: role || user.role || 'client'
+      role: finalRole
     };
     setCurrentUser(authenticatedUser);
-    setIsRegisteredArtisan(role === 'artisan' || authenticatedUser.role === 'artisan');
+    setIsRegisteredArtisan(isArtisanRole);
 
     try {
       localStorage.setItem('handiconnect_user', JSON.stringify(authenticatedUser));
     } catch (e) {}
 
-    if (role === 'artisan' || authenticatedUser.role === 'artisan') {
-      const newArtisanObj = {
-        id: authenticatedUser.id || 'art-' + Date.now(),
-        name: authenticatedUser.name,
-        businessName: authenticatedUser.businessName || authenticatedUser.name,
-        category: authenticatedUser.category || 'electrical',
-        categoryName: 'Electrical & Inverter Systems',
-        rating: 5.0,
-        reviewsCount: 0,
-        completedJobs: 0,
-        badge: 'Verified Pro',
-        isVerified: true,
-        experienceYears: authenticatedUser.experienceYears || 5,
-        startingRate: authenticatedUser.startingRate || 5000,
-        phone: authenticatedUser.phone || '+2348031234567',
-        whatsapp: (authenticatedUser.phone || '2348031234567').replace('+', ''),
-        districts: ['Alagbaka (GRA & Extension)', 'Ijapo Estate'],
-        avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&auto=format&fit=crop&q=80',
-        bio: `Certified ${authenticatedUser.category || 'handyman'} artisan serving Akure.`
-      };
-      setArtisans(prev => [newArtisanObj, ...prev.filter(a => a.id !== newArtisanObj.id)]);
-      showToast(`Welcome ${authenticatedUser.name}! Registered as an Artisan Pro on HandiConnect.`);
+    if (isArtisanRole) {
+      const existing = (artisans || []).find(a => a.id === user.id || a.phone === user.phone || (user.email && a.email?.toLowerCase() === user.email?.toLowerCase()));
+      if (!existing) {
+        const newArtisanObj = {
+          id: authenticatedUser.id || 'art-' + Date.now(),
+          name: authenticatedUser.name,
+          businessName: authenticatedUser.businessName || authenticatedUser.name,
+          category: authenticatedUser.category || 'electrical',
+          categoryName: 'Electrical & Inverter Systems',
+          rating: 5.0,
+          reviewsCount: 0,
+          completedJobs: 0,
+          badge: 'Verified Pro',
+          isVerified: true,
+          experienceYears: authenticatedUser.experienceYears || 5,
+          startingRate: authenticatedUser.startingRate || 5000,
+          phone: authenticatedUser.phone || '+2348031234567',
+          whatsapp: (authenticatedUser.phone || '2348031234567').replace('+', ''),
+          districts: ['Alagbaka (GRA & Extension)', 'Ijapo Estate'],
+          avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&auto=format&fit=crop&q=80',
+          bio: `Certified ${authenticatedUser.category || 'handyman'} artisan serving Akure.`
+        };
+        setArtisans(prev => [newArtisanObj, ...prev.filter(a => a.id !== newArtisanObj.id)]);
+      }
+      showToast(`Welcome ${authenticatedUser.name}! Signed in to your Artisan Pro Dashboard.`);
     } else {
       showToast(`Welcome back ${authenticatedUser.name}! Signed in to Client Dashboard.`);
     }
@@ -222,6 +235,7 @@ function AppContent() {
     // Immediately navigate user directly to their dashboard according to role!
     navigate('/dashboard');
   };
+
 
   const handleSignOut = async () => {
     await signOutUser();
