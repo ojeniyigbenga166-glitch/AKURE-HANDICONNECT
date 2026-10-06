@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mail, Lock, User, ArrowRight, Eye, EyeOff, Wrench, Sparkles } from 'lucide-react';
+import { X, Mail, Lock, User, ArrowRight, Eye, EyeOff, Wrench, Sparkles, ChevronDown, LogIn, UserPlus } from 'lucide-react';
 import { AKURE_DISTRICTS, CATEGORIES } from '../data/mockData';
 import { signInWithEmail, signUpClientUser, signUpArtisanUser } from '../services/authService';
 
@@ -12,9 +12,8 @@ export default function AuthModal({
   const [roleMode, setRoleMode] = useState(
     initialMode === 'signup-artisan' || initialMode === 'artisan' ? 'artisan' : 'client'
   );
-  const [authSubMode, setAuthSubMode] = useState(
-    initialMode === 'signin' ? 'signin' : 'signup'
-  );
+  // authSubMode is null initially so form is hidden until Sign In or Sign Up button is clicked to pop down!
+  const [authSubMode, setAuthSubMode] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
   // Form State
@@ -27,7 +26,7 @@ export default function AuthModal({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Sync role & sub-mode when modal opens or initialMode changes
+  // Sync role when modal opens or initialMode changes
   useEffect(() => {
     if (isOpen) {
       if (initialMode === 'signin') {
@@ -35,10 +34,10 @@ export default function AuthModal({
         setRoleMode('client');
       } else if (initialMode === 'signup-artisan' || initialMode === 'artisan') {
         setRoleMode('artisan');
-        setAuthSubMode('signup');
+        setAuthSubMode(null); // Keep form pop-down hidden until user clicks
       } else {
         setRoleMode('client');
-        setAuthSubMode('signup');
+        setAuthSubMode(null); // Keep form pop-down hidden until user clicks
       }
       setErrorMsg('');
     }
@@ -143,9 +142,7 @@ export default function AuthModal({
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            {authSubMode === 'signin'
-              ? `Sign In as ${roleMode === 'artisan' ? 'Artisan' : 'Client'}`
-              : `Create ${roleMode === 'artisan' ? 'Artisan Pro' : 'Client'} Account`}
+            {roleMode === 'artisan' ? 'Artisan Pro Access' : 'Client Account Access'}
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-500 font-normal max-w-xs mx-auto leading-relaxed">
@@ -191,33 +188,7 @@ export default function AuthModal({
           </button>
         </div>
 
-        {/* 2. Sub-mode Switcher Pills: Sign Up vs Sign In */}
-        <div className="flex items-center justify-center gap-1 bg-slate-100/70 p-1 rounded-xl border border-slate-200/60 text-xs font-bold">
-          <button
-            type="button"
-            onClick={() => setAuthSubMode('signup')}
-            className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
-              authSubMode === 'signup'
-                ? 'bg-[#0F766E] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Create Account (Sign Up)
-          </button>
-          <button
-            type="button"
-            onClick={() => setAuthSubMode('signin')}
-            className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
-              authSubMode === 'signin'
-                ? 'bg-[#0F766E] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Sign In
-          </button>
-        </div>
-
-        {/* Quick Google Sign In Button */}
+        {/* Quick Google 1-Click Sign In Button */}
         <button
           type="button"
           onClick={handleGoogleSignIn}
@@ -246,131 +217,169 @@ export default function AuthModal({
 
         <div className="relative flex items-center justify-center my-1">
           <div className="border-t border-slate-200 w-full"></div>
-          <span className="bg-white px-3 text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0">or continue with email</span>
+          <span className="bg-white px-3 text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0">or select option to pop down form</span>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
-          
-          {/* Full Name (ONLY SHOWN FOR SIGN UP) */}
-          {authSubMode === 'signup' && (
+        {/* 2. Action Choice Buttons: Sign In vs Sign Up (Pops Down Form) */}
+        <div className="grid grid-cols-2 gap-2.5 text-xs font-extrabold">
+          <button
+            type="button"
+            onClick={() => setAuthSubMode(authSubMode === 'signin' ? null : 'signin')}
+            className={`py-3 px-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              authSubMode === 'signin'
+                ? 'bg-[#0F766E] text-white border-[#0F766E] shadow-sm'
+                : 'bg-slate-50 text-slate-700 border-slate-250 hover:bg-slate-100 hover:border-slate-300'
+            }`}
+          >
+            <LogIn className="w-4 h-4" />
+            <span>Sign In</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${authSubMode === 'signin' ? 'rotate-180' : ''}`} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAuthSubMode(authSubMode === 'signup' ? null : 'signup')}
+            className={`py-3 px-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              authSubMode === 'signup'
+                ? 'bg-[#0F766E] text-white border-[#0F766E] shadow-sm'
+                : 'bg-slate-50 text-slate-700 border-slate-250 hover:bg-slate-100 hover:border-slate-300'
+            }`}
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Sign Up</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${authSubMode === 'signup' ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        {/* POP-DOWN FORM: Hidden until user clicks Sign In or Sign Up button! */}
+        {authSubMode && (
+          <form onSubmit={handleSubmit} className="space-y-3.5 text-xs pt-3 border-t border-slate-100 animate-in fade-in slide-in-from-top-2 duration-200">
+            
+            <div className="bg-emerald-50/70 border border-emerald-200 p-2.5 rounded-xl text-[11px] font-bold text-[#0F766E] flex items-center justify-between">
+              <span>{authSubMode === 'signup' ? '✨ New Account Registration Form' : '🔑 Existing Account Sign In'}</span>
+              <span className="text-slate-500 font-normal">Pop-down Form</span>
+            </div>
+
+            {/* Full Name (ONLY SHOWN FOR SIGN UP) */}
+            {authSubMode === 'signup' && (
+              <div>
+                <label className="block font-extrabold text-slate-700 mb-1">
+                  {roleMode === 'artisan' ? 'Owner / Your Full Name' : 'Full Name'}
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder={roleMode === 'artisan' ? 'e.g. Marvellous Adebayo' : 'e.g. Gbenga'}
+                    className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Email Address (ALWAYS SHOWN WHEN FORM POPS DOWN) */}
             <div>
-              <label className="block font-extrabold text-slate-700 mb-1">
-                {roleMode === 'artisan' ? 'Owner / Your Full Name' : 'Full Name'}
-              </label>
+              <label className="block font-extrabold text-slate-700 mb-1">Email Address</label>
               <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder={roleMode === 'artisan' ? 'e.g. Marvellous Adebayo' : 'e.g. Gbenga'}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="lorencedock123@gmail.com"
                   className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
                 />
               </div>
             </div>
-          )}
 
-          {/* Email Address (ALWAYS SHOWN) */}
-          <div>
-            <label className="block font-extrabold text-slate-700 mb-1">Email Address</label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="lorencedock123@gmail.com"
-                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
-              />
-            </div>
-          </div>
-
-          {/* Password (ALWAYS SHOWN) */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block font-extrabold text-slate-700">Password</label>
-              {authSubMode === 'signin' && (
-                <button type="button" onClick={() => alert('Password reset link sent to your registered email.')} className="text-[11px] font-bold text-[#0F766E] hover:underline cursor-pointer">
-                  Forgot Password?
+            {/* Password (ALWAYS SHOWN WHEN FORM POPS DOWN) */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block font-extrabold text-slate-700">Password</label>
+                {authSubMode === 'signin' && (
+                  <button type="button" onClick={() => alert('Password reset link sent to your registered email.')} className="text-[11px] font-bold text-[#0F766E] hover:underline cursor-pointer">
+                    Forgot Password?
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="•••••••••••••"
+                  className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
-              )}
+              </div>
             </div>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="•••••••••••••"
-                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
 
-          {/* Trade Category for Artisan (ONLY SHOWN FOR SIGN UP) */}
-          {authSubMode === 'signup' && roleMode === 'artisan' && (
-            <div>
-              <label className="block font-extrabold text-slate-700 mb-1">Primary Trade Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
-              >
-                {CATEGORIES.filter(c => c.id !== 'all').map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Primary Akure Neighborhood for Client (ONLY SHOWN FOR SIGN UP) */}
-          {authSubMode === 'signup' && roleMode === 'client' && (
-            <div>
-              <label className="block font-extrabold text-slate-700 mb-1">Primary Akure Neighborhood</label>
-              <select
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
-              >
-                {AKURE_DISTRICTS.filter(d => d !== 'All Akure Areas').map((d, i) => (
-                  <option key={i} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
-          >
-            {loading ? (
-              <span>Authenticating...</span>
-            ) : (
-              <>
-                <span>
-                  {authSubMode === 'signin'
-                    ? `Sign In to ${roleMode === 'artisan' ? 'Artisan' : 'Client'} Dashboard`
-                    : `Create ${roleMode === 'artisan' ? 'Artisan Pro' : 'Client'} Account`}
-                </span>
-                <ArrowRight className="w-4 h-4" />
-              </>
+            {/* Trade Category for Artisan (ONLY SHOWN FOR SIGN UP) */}
+            {authSubMode === 'signup' && roleMode === 'artisan' && (
+              <div>
+                <label className="block font-extrabold text-slate-700 mb-1">Primary Trade Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
+                >
+                  {CATEGORIES.filter(c => c.id !== 'all').map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
             )}
-          </button>
 
-        </form>
+            {/* Primary Akure Neighborhood for Client (ONLY SHOWN FOR SIGN UP) */}
+            {authSubMode === 'signup' && roleMode === 'client' && (
+              <div>
+                <label className="block font-extrabold text-slate-700 mb-1">Primary Akure Neighborhood</label>
+                <select
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
+                >
+                  {AKURE_DISTRICTS.filter(d => d !== 'All Akure Areas').map((d, i) => (
+                    <option key={i} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
+            >
+              {loading ? (
+                <span>Authenticating...</span>
+              ) : (
+                <>
+                  <span>
+                    {authSubMode === 'signin'
+                      ? `Sign In to ${roleMode === 'artisan' ? 'Artisan' : 'Client'} Dashboard`
+                      : `Create ${roleMode === 'artisan' ? 'Artisan Pro' : 'Client'} Account`}
+                  </span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+
+          </form>
+        )}
 
       </div>
     </div>
