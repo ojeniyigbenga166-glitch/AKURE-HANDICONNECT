@@ -182,20 +182,14 @@ function AppContent() {
   };
 
   const handleAuthenticate = ({ user, role }) => {
-    const isMatchingArtisanInState = (artisans || []).some(a => 
-      a.id === user.id || 
-      (user.email && a.email?.toLowerCase() === user.email?.toLowerCase()) || 
-      (user.phone && a.phone === user.phone) ||
-      (user.name && a.name?.toLowerCase() === user.name?.toLowerCase())
-    );
-
-    const isArtisanRole = role === 'artisan' || user.role === 'artisan' || isMatchingArtisanInState;
-    const finalRole = isArtisanRole ? 'artisan' : (role || user.role || 'client');
+    const isArtisanRole = role === 'artisan';
+    const finalRole = isArtisanRole ? 'artisan' : 'client';
 
     const authenticatedUser = {
       ...user,
       role: finalRole
     };
+
     setCurrentUser(authenticatedUser);
     setIsRegisteredArtisan(isArtisanRole);
 
@@ -208,8 +202,8 @@ function AppContent() {
       if (!existing) {
         const newArtisanObj = {
           id: authenticatedUser.id || 'art-' + Date.now(),
-          name: authenticatedUser.name,
-          businessName: authenticatedUser.businessName || authenticatedUser.name,
+          name: authenticatedUser.name || 'Marvellous Adebayo',
+          businessName: authenticatedUser.businessName || authenticatedUser.name || 'Adebayo Pro Services',
           category: authenticatedUser.category || 'electrical',
           categoryName: 'Electrical & Inverter Systems',
           rating: 5.0,
@@ -229,12 +223,13 @@ function AppContent() {
       }
       showToast(`Welcome ${authenticatedUser.name}! Signed in to your Artisan Pro Dashboard.`);
     } else {
-      showToast(`Welcome back ${authenticatedUser.name}! Signed in to Client Dashboard.`);
+      showToast(`Welcome ${authenticatedUser.name}! Signed in to your Client Dashboard.`);
     }
 
-    // Immediately navigate user directly to their dashboard according to role!
+    // Immediately navigate user directly to their dashboard according to selected role!
     navigate('/dashboard');
   };
+
 
 
   const handleSignOut = async () => {

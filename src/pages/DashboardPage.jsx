@@ -55,23 +55,16 @@ export default function DashboardPage({
   onOpenAuthSelection,
   onSignOut
 }) {
-  const isArtisanRole = currentUser?.role === 'artisan' || isRegisteredArtisan || (artisans || []).some(a => 
-    a.id === currentUser?.id || 
-    (currentUser?.email && a.email?.toLowerCase() === currentUser.email?.toLowerCase()) || 
-    (currentUser?.phone && a.phone === currentUser.phone)
-  );
+  const isArtisanRole = currentUser?.role === 'artisan';
   const [viewMode, setViewMode] = useState(isArtisanRole ? 'artisan-pro' : 'client');
   const [activeDashboardTab, setActiveDashboardTab] = useState(isArtisanRole ? 'live-tasks' : 'my-tasks');
 
   useEffect(() => {
-    const isArtisan = currentUser?.role === 'artisan' || isRegisteredArtisan || (artisans || []).some(a => 
-      a.id === currentUser?.id || 
-      (currentUser?.email && a.email?.toLowerCase() === currentUser.email?.toLowerCase()) || 
-      (currentUser?.phone && a.phone === currentUser.phone)
-    );
+    const isArtisan = currentUser?.role === 'artisan';
     setViewMode(isArtisan ? 'artisan-pro' : 'client');
     setActiveDashboardTab(isArtisan ? 'live-tasks' : 'my-tasks');
-  }, [currentUser, isRegisteredArtisan, artisans]);
+  }, [currentUser]);
+
 
   
   const [isPostTaskOpen, setIsPostTaskOpen] = useState(false);
