@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { X, Mail, Lock, User, ArrowRight, Eye, EyeOff, Wrench, Sparkles } from 'lucide-react';
 import { AKURE_DISTRICTS, CATEGORIES } from '../data/mockData';
 import { signInWithEmail, signUpClientUser, signUpArtisanUser } from '../services/authService';
 
@@ -15,6 +15,7 @@ export default function AuthModal({
   const [authSubMode, setAuthSubMode] = useState(
     initialMode === 'signin' ? 'signin' : 'signup'
   );
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form State
   const [email, setEmail] = useState('');
@@ -123,30 +124,31 @@ export default function AuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 animate-in fade-in">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-xl border border-slate-200 relative space-y-5 max-h-[90vh] overflow-y-auto no-scrollbar">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/75 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative space-y-5 max-h-[92vh] overflow-y-auto no-scrollbar">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-all cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Modal Header */}
-        <div className="text-center space-y-1">
-          <span className="text-[11px] font-bold text-[#0F766E] uppercase tracking-wider bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-            {roleMode === 'artisan' ? '🛠️ Artisan Pro Access' : '👤 Client Account Access'}
-          </span>
+        <div className="text-center space-y-1.5 pt-1">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-[#0F766E] border border-emerald-200 text-xs font-extrabold shadow-2xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#0F766E]" />
+            <span>{roleMode === 'artisan' ? '🛠️ Artisan Pro Portal' : '👤 Client Portal'}</span>
+          </div>
 
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight pt-1">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             {authSubMode === 'signin'
               ? `Sign In as ${roleMode === 'artisan' ? 'Artisan' : 'Client'}`
               : `Create ${roleMode === 'artisan' ? 'Artisan Pro' : 'Client'} Account`}
           </h2>
 
-          <p className="text-xs text-slate-500 font-normal">
+          <p className="text-xs sm:text-sm text-slate-500 font-normal max-w-xs mx-auto leading-relaxed">
             {roleMode === 'artisan'
               ? 'Access live task leads in Akure, submit quotes & manage your pro profile.'
               : 'Post repair jobs, receive artisan price quotes & hire verified pros.'}
@@ -155,61 +157,63 @@ export default function AuthModal({
 
         {/* Error Alert Banner */}
         {errorMsg && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs font-semibold flex items-center justify-between">
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3.5 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-2xs animate-in slide-in-from-top-1">
             <span>⚠️ {errorMsg}</span>
-            <button onClick={() => setErrorMsg('')} className="font-bold ml-2">✕</button>
+            <button onClick={() => setErrorMsg('')} className="font-bold ml-2 text-rose-500 hover:text-rose-800">✕</button>
           </div>
         )}
 
         {/* 1. Primary Role Selection Tabs: Client vs Artisan */}
-        <div className="bg-slate-100 p-1.5 rounded-xl flex items-center gap-1.5 text-xs font-semibold border border-slate-200">
+        <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center gap-1.5 text-xs font-extrabold border border-slate-200/80 shadow-inner">
           <button
             type="button"
             onClick={() => setRoleMode('client')}
-            className={`flex-1 py-2.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               roleMode === 'client'
-                ? 'bg-white text-[#0F766E] font-extrabold shadow-sm border border-emerald-200'
+                ? 'bg-white text-[#0F766E] shadow-sm border border-emerald-200 scale-[1.02]'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span>👤 Client</span>
+            <User className="w-4 h-4 text-[#0F766E]" />
+            <span>Client</span>
           </button>
           <button
             type="button"
             onClick={() => setRoleMode('artisan')}
-            className={`flex-1 py-2.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               roleMode === 'artisan'
-                ? 'bg-white text-[#0F766E] font-extrabold shadow-sm border border-emerald-200'
+                ? 'bg-white text-[#0F766E] shadow-sm border border-emerald-200 scale-[1.02]'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span>🛠️ Artisan</span>
+            <Wrench className="w-4 h-4 text-[#0F766E]" />
+            <span>Artisan Pro</span>
           </button>
         </div>
 
         {/* 2. Sub-mode Switcher Pills: Sign Up vs Sign In */}
-        <div className="flex items-center justify-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200 text-xs font-semibold">
+        <div className="flex items-center justify-center gap-1 bg-slate-100/70 p-1 rounded-xl border border-slate-200/60 text-xs font-bold">
           <button
             type="button"
             onClick={() => setAuthSubMode('signup')}
-            className={`flex-1 py-1.5 rounded-md transition-all cursor-pointer ${
+            className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
               authSubMode === 'signup'
-                ? 'bg-[#0F766E] text-white font-bold'
+                ? 'bg-[#0F766E] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Sign Up (New)
+            Create Account (Sign Up)
           </button>
           <button
             type="button"
             onClick={() => setAuthSubMode('signin')}
-            className={`flex-1 py-1.5 rounded-md transition-all cursor-pointer ${
+            className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
               authSubMode === 'signin'
-                ? 'bg-[#0F766E] text-white font-bold'
+                ? 'bg-[#0F766E] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Sign In (Existing)
+            Sign In
           </button>
         </div>
 
@@ -217,7 +221,7 @@ export default function AuthModal({
         <button
           type="button"
           onClick={handleGoogleSignIn}
-          className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+          className="w-full py-3 px-4 rounded-2xl border border-slate-250 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs shadow-2xs transition-all flex items-center justify-center gap-2.5 cursor-pointer hover:border-slate-300"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -242,27 +246,27 @@ export default function AuthModal({
 
         <div className="relative flex items-center justify-center my-1">
           <div className="border-t border-slate-200 w-full"></div>
-          <span className="bg-white px-3 text-[11px] text-slate-400 font-semibold uppercase tracking-wider shrink-0">or with email</span>
+          <span className="bg-white px-3 text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0">or continue with email</span>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="space-y-3 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
           
           {/* Full Name (ONLY SHOWN FOR SIGN UP) */}
           {authSubMode === 'signup' && (
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-extrabold text-slate-700 mb-1">
                 {roleMode === 'artisan' ? 'Owner / Your Full Name' : 'Full Name'}
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder={roleMode === 'artisan' ? 'e.g. Marvellous Adebayo' : 'e.g. Gbenga'}
-                  className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
+                  className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
                 />
               </div>
             </div>
@@ -270,44 +274,58 @@ export default function AuthModal({
 
           {/* Email Address (ALWAYS SHOWN) */}
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Email Address</label>
+            <label className="block font-extrabold text-slate-700 mb-1">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="lorencedock123@gmail.com"
-                className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
+                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
               />
             </div>
           </div>
 
           {/* Password (ALWAYS SHOWN) */}
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Password</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block font-extrabold text-slate-700">Password</label>
+              {authSubMode === 'signin' && (
+                <button type="button" onClick={() => alert('Password reset link sent to your registered email.')} className="text-[11px] font-bold text-[#0F766E] hover:underline cursor-pointer">
+                  Forgot Password?
+                </button>
+              )}
+            </div>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="•••••••••••••"
-                className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
+                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
           {/* Trade Category for Artisan (ONLY SHOWN FOR SIGN UP) */}
           {authSubMode === 'signup' && roleMode === 'artisan' && (
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Primary Trade Category</label>
+              <label className="block font-extrabold text-slate-700 mb-1">Primary Trade Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
               >
                 {CATEGORIES.filter(c => c.id !== 'all').map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
@@ -319,11 +337,11 @@ export default function AuthModal({
           {/* Primary Akure Neighborhood for Client (ONLY SHOWN FOR SIGN UP) */}
           {authSubMode === 'signup' && roleMode === 'client' && (
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Primary Akure Neighborhood</label>
+              <label className="block font-extrabold text-slate-700 mb-1">Primary Akure Neighborhood</label>
               <select
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#0F766E]"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#0F766E] shadow-2xs"
               >
                 {AKURE_DISTRICTS.filter(d => d !== 'All Akure Areas').map((d, i) => (
                   <option key={i} value={d}>{d}</option>
@@ -336,7 +354,7 @@ export default function AuthModal({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-[#0F766E] hover:bg-[#115E59] text-white font-bold text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer mt-3"
+            className="w-full py-3.5 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
           >
             {loading ? (
               <span>Authenticating...</span>
